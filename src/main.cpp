@@ -1,0 +1,51 @@
+#include "raylib.h"
+#include "rlImGui.h"
+#include "imgui.h"
+#include "raymath.h"
+#include "rlgl.h"
+#include "headers/editor.h"
+#include "headers/camera.h"
+
+int main() {
+    InitWindow(1280, 720, "Quark Engine");
+
+    SetTargetFPS(60);
+    rlImGuiSetup(true);
+    SetExitKey(0);
+
+    Editor editor;
+    FlyCamera camera;
+
+    editor.load_models();
+    editor.load_textures();
+
+    while (!WindowShouldClose()) {
+        BeginDrawing();
+        ClearBackground(DARKGRAY);
+
+        rlImGuiBegin();
+
+        editor.draw_gizmo(camera.get_camera());
+        camera.update();
+        editor.handle_input();
+
+        BeginMode3D(camera.get_camera());
+
+        DrawGrid(20, 1.0f);
+
+        for (auto& e : editor.scene.entities) {
+            editor.draw_entity_with_texture(e);
+        }
+
+        EndMode3D();
+
+        editor.draw_ui();
+
+        rlImGuiEnd();
+
+        EndDrawing();
+    }
+
+    rlImGuiShutdown();
+    CloseWindow();
+}

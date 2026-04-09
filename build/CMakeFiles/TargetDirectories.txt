@@ -1,0 +1,3 @@
+/home/vova/Quark/build/CMakeFiles/QuarkEngine.dir
+/home/vova/Quark/build/CMakeFiles/edit_cache.dir
+/home/vova/Quark/build/CMakeFiles/rebuild_cache.dir
