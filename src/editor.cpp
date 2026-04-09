@@ -11,6 +11,10 @@ static ImGuizmo::OPERATION gizmo_mode = ImGuizmo::TRANSLATE;
 static int renaming_index = -1;
 static char rename_buf[128] = "";
 
+const float icon_size = 64.0f;
+const float padding = 10.0f;
+const float cell_size = icon_size + padding;
+
 void Editor::handle_input() {
     float speed = 0.1f;
     Entity* e = scene.get_selected();
@@ -40,6 +44,7 @@ void Editor::handle_input() {
 
         UnloadDroppedFiles(dropped);
         refresh_textures(&scene);
+        refresh_assets();
     }
 
 }
@@ -296,20 +301,159 @@ void Editor::draw_ui() {
 
     ImGui::End();
 
+    draw_assets_ui();
+}
+
+void Editor::draw_assets_ui() {
     ImGui::SetNextWindowSize(ImVec2(1270, 165), ImGuiCond_Once);
     ImGui::SetNextWindowPos(ImVec2(5, 550), ImGuiCond_Once);
     ImGui::Begin("Assets", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 
-    if (fs::is_empty("assets")) {
+    static ImVec2 selection_start;
+    static ImVec2 selection_end;
+    static bool selecting = false;
+    static int rename_target = -1;
+
+    ImVec2 window_size = ImGui::GetWindowSize();
+
+    if (asset_entries.empty()) {
         const char* text = "Drag files here";
+        ImVec2 text_size = ImGui::CalcTextSize(text);
 
-        ImVec2 windowSize = ImGui::GetWindowSize();
-        ImVec2 textSize = ImGui::CalcTextSize(text);
-
-        ImGui::SetCursorPosX((windowSize.x - textSize.x) * 0.5f);
-        ImGui::SetCursorPosY((windowSize.y - textSize.y) * 0.5f);
-
+        ImGui::SetCursorPosX((window_size.x - text_size.x) * 0.5f);
+        ImGui::SetCursorPosY((window_size.y - text_size.y) * 0.5f);
         ImGui::Text("%s", text);
+    } 
+    
+    else {
+        ImGui::BeginChild("AssetScroll", ImVec2(0, 0), false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+
+        if (ImGui::IsWindowHovered()) {
+            if (ImGui::IsMouseClicked(0)) {
+                selection_start = ImGui::GetMousePos();
+                selection_end = selection_start;
+                selecting = true;
+            }
+
+            if (ImGui::IsMouseDown(0) && selecting) selection_end = ImGui::GetMousePos();
+            if (ImGui::IsMouseReleased(0)) selecting = false;
+        }
+
+        float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+
+        for (int i = 0; i < asset_entries.size(); i++) {
+            ImGui::PushID(i);
+            ImGui::BeginGroup();
+
+            ImVec2 pos = ImGui::GetCursorScreenPos();
+            ImVec2 size(icon_size, icon_size + 20.0f);
+
+            ImGui::InvisibleButton("asset_btn", size);
+
+            if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", asset_entries[i].filename.c_str());
+            if (ImGui::IsItemClicked() && !ImGui::IsMouseDragging(0)) selected_asset_index = i;
+
+            if (ImGui::BeginPopupContextItem("AssetContext")) {
+                if (ImGui::MenuItem("Delete")) {
+                    fs::remove(fs::path("assets") / asset_entries[i].filename);
+                    asset_entries.erase(asset_entries.begin() + i);
+
+                    if (selected_asset_index == i) selected_asset_index = -1;
+
+                    ImGui::EndPopup();
+                    ImGui::EndGroup();
+                    ImGui::PopID();
+                    break;
+                }
+
+                if (ImGui::MenuItem("Rename")) {
+                    rename_target = i;
+                    size_t copied = asset_entries[i].filename.copy(rename_buf, sizeof(rename_buf) - 1);
+                    rename_buf[copied] = '\0';
+
+                    ImGui::OpenPopup("RenameAsset");
+                }
+
+                ImGui::EndPopup();
+            }
+
+            bool selected = (selected_asset_index == i);
+
+            if (selecting && (fabs(selection_start.x - selection_end.x) > 5.0f || fabs(selection_start.y - selection_end.y) > 5.0f)) {
+                ImVec2 min = ImVec2(std::min(selection_start.x, selection_end.x), std::min(selection_start.y, selection_end.y));
+                ImVec2 max = ImVec2(std::max(selection_start.x, selection_end.x), std::max(selection_start.y, selection_end.y));
+
+                if (!(pos.x + size.x < min.x || pos.x > max.x || pos.y + size.y < min.y || pos.y > max.y)) selected = true;
+            }
+
+            if (selected) {
+                ImVec2 frame_max = ImVec2(pos.x + size.x, pos.y + size.y);
+                ImGui::GetWindowDrawList()->AddRectFilled(pos, frame_max, IM_COL32(80, 140, 255, 150));
+            }
+
+            ImGui::SetCursorScreenPos(pos);
+            if (asset_entries[i].is_image) ImGui::Image((void*)(intptr_t)asset_entries[i].texture.id, ImVec2(icon_size, icon_size));
+            else ImGui::Button("File", ImVec2(icon_size, icon_size));
+
+            ImGui::SetCursorScreenPos(ImVec2(pos.x, pos.y + icon_size));
+            std::string label = asset_entries[i].filename;
+
+            if (label.size() > 12) label = label.substr(0, 9) + "...";
+
+            ImGui::TextWrapped("%s", label.c_str());
+            ImGui::EndGroup();
+
+            float last_x2 = ImGui::GetItemRectMax().x;
+            float next_x2 = last_x2 + ImGui::GetStyle().ItemSpacing.x + icon_size;
+
+            if (i + 1 < asset_entries.size() && next_x2 < window_visible_x2)ImGui::SameLine();
+
+            ImGui::PopID();
+        }
+
+        if (selecting && (fabs(selection_start.x - selection_end.x) > 5.0f || fabs(selection_start.y - selection_end.y) > 5.0f)) {
+            ImVec2 min = ImVec2(std::min(selection_start.x, selection_end.x), std::min(selection_start.y, selection_end.y));
+            ImVec2 max = ImVec2(std::max(selection_start.x, selection_end.x), std::max(selection_start.y, selection_end.y));
+
+            ImGui::GetForegroundDrawList()->AddRectFilled(min, max, IM_COL32(80, 140, 255, 40));
+        }
+
+        if (rename_target >= 0) {
+            ImGui::OpenPopup("RenameAsset");
+            rename_target = -2;
+        }
+
+        if (rename_target == -2 && ImGui::BeginPopupModal("RenameAsset", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            ImGui::InputText("##rename", rename_buf, IM_ARRAYSIZE(rename_buf));
+            if (ImGui::Button("OK")) {
+                if (selected_asset_index >= 0 && selected_asset_index < asset_entries.size()) {
+                    fs::path old_path = fs::path("assets") / asset_entries[selected_asset_index].filename;
+                    fs::path new_path = fs::path("assets") / rename_buf;
+
+                    if (rename_buf[0] != '\0' && old_path != new_path && fs::exists(old_path)) {
+                        try {
+                            fs::rename(old_path, new_path);
+                            asset_entries[selected_asset_index].filename = rename_buf;
+                        } 
+                        
+                        catch (...) {}
+                    }
+                }
+
+                rename_target = -1;
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel")) {
+                rename_target = -1;
+                ImGui::CloseCurrentPopup();
+            }
+            
+            ImGui::EndPopup();
+        }
+
+        ImGui::EndChild();
     }
 
     ImGui::End();

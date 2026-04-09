@@ -3,9 +3,11 @@
 #include <unordered_set>
 
 namespace fs = std::filesystem;
-std::vector<TextureOption> texture_options;
 
-static bool is_image_file(const fs::path& p) {
+std::vector<TextureOption> texture_options;
+std::vector<AssetEntry> asset_entries;
+
+bool is_image_file(const fs::path& p) {
     std::string ext = p.extension().string();
     for (auto& c : ext) c = (char)tolower(c);
     return ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp" || ext == ".tga";
@@ -201,4 +203,35 @@ void refresh_textures(Scene* scene) {
     }
 
     texture_options = std::move(next_options);
+}
+
+void load_assets() {
+    asset_entries.clear();
+    if (!fs::exists("assets")) fs::create_directories("assets");
+
+    for (auto& entry : fs::directory_iterator("assets")) {
+        fs::path path = entry.path();
+
+        AssetEntry asset_entry;
+        asset_entry.filename = path.filename().string();
+        asset_entry.is_image = is_image_file(path.string());
+
+        if (asset_entry.is_image) {
+            asset_entry.texture = LoadTexture(path.string().c_str());
+        }
+    }
+}
+
+void refresh_assets() {
+    asset_entries.clear();
+    if (!fs::exists("assets")) fs::create_directories("assets");
+
+    for (auto& entry : fs::directory_iterator("assets")) {
+        AssetEntry a;
+        a.filename = entry.path().filename().string();
+        a.is_image = is_image_file(entry.path().string());
+
+        if (a.is_image) a.texture = LoadTexture(entry.path().string().c_str());
+        asset_entries.push_back(a);
+    }
 }
