@@ -23,6 +23,9 @@ void FlyCamera::update() {
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         DisableCursor();
         active = true;
+        
+        Vector2 winCenter = { GetScreenWidth()/2.0f, GetScreenHeight()/2.0f };
+        SetMousePosition(winCenter.x, winCenter.y);
     }
 
     if (IsKeyPressed(KEY_ESCAPE)) {
@@ -34,6 +37,7 @@ void FlyCamera::update() {
 
     float dt = GetFrameTime();
     Vector2 md = GetMouseDelta();
+    if (fabs(md.x) > 100 || fabs(md.y) > 100) md = {0,0};
 
     yaw   -= md.x * sensitivity;
     pitch -= md.y * sensitivity;
@@ -48,7 +52,6 @@ void FlyCamera::update() {
     };
 
     forward = Vector3Normalize(forward);
-
     Vector3 right = { sinf(yaw - PI/2), 0, cosf(yaw - PI/2) };
 
     if (IsKeyDown(KEY_W)) cam.position = Vector3Add(cam.position, Vector3Scale(forward, speed * dt));
@@ -57,6 +60,8 @@ void FlyCamera::update() {
     if (IsKeyDown(KEY_D)) cam.position = Vector3Add(cam.position, Vector3Scale(right, speed * dt));
 
     cam.target = Vector3Add(cam.position, forward);
+    Vector2 winCenter = { GetScreenWidth()/2.0f, GetScreenHeight()/2.0f };
+    SetMousePosition(winCenter.x, winCenter.y);
 }
 
 Camera3D& FlyCamera::get_camera() {
