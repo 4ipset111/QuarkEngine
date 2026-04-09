@@ -7,6 +7,8 @@
 #include "headers/camera.h"
 
 int main() {
+    if (!std::filesystem::exists("assets")) std::filesystem::create_directory("assets");
+
     InitWindow(1280, 720, "Quark Engine");
 
     SetTargetFPS(60);
