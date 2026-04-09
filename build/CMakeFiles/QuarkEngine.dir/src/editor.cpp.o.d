@@ -116,8 +116,8 @@ CMakeFiles/QuarkEngine.dir/src/editor.cpp.o: \
  /usr/include/c++/13/bits/memory_resource.h /usr/include/c++/13/cstddef \
  /usr/include/c++/13/bits/uses_allocator.h \
  /usr/include/c++/13/bits/uses_allocator_args.h /usr/include/c++/13/tuple \
- /home/vova/Quark/src/headers/entity.h /usr/include/c++/13/string \
- /usr/include/c++/13/bits/stringfwd.h \
+ /home/vova/Quark/src/headers/entity.h /usr/local/include/rlgl.h \
+ /usr/include/c++/13/string /usr/include/c++/13/bits/stringfwd.h \
  /usr/include/c++/13/bits/char_traits.h \
  /usr/include/c++/13/bits/postypes.h /usr/include/c++/13/cwchar \
  /usr/include/wchar.h /usr/include/x86_64-linux-gnu/bits/wchar.h \
@@ -162,8 +162,7 @@ CMakeFiles/QuarkEngine.dir/src/editor.cpp.o: \
  /usr/include/c++/13/bits/algorithmfwd.h \
  /usr/include/c++/13/bits/stl_heap.h \
  /usr/include/c++/13/bits/uniform_int_dist.h \
- /usr/include/c++/13/bits/stl_tempbuf.h /usr/local/include/rlgl.h \
- /usr/include/c++/13/memory \
+ /usr/include/c++/13/bits/stl_tempbuf.h /usr/include/c++/13/memory \
  /usr/include/c++/13/bits/stl_raw_storage_iter.h \
  /usr/include/c++/13/bits/align.h \
  /usr/lib/gcc/x86_64-linux-gnu/13/include/stdint.h /usr/include/stdint.h \
@@ -230,4 +229,5 @@ CMakeFiles/QuarkEngine.dir/src/editor.cpp.o: \
  /usr/include/c++/13/bits/istream.tcc \
  /usr/include/c++/13/bits/sstream.tcc /usr/include/c++/13/codecvt \
  /usr/include/c++/13/bits/fs_dir.h /usr/include/c++/13/bits/fs_ops.h \
- /usr/include/c++/13/cstring /home/vova/Quark/src/headers/ImGuizmo.h
+ /usr/include/c++/13/cstring /home/vova/Quark/src/headers/models.h \
+ /home/vova/Quark/src/headers/ImGuizmo.h

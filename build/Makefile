@@ -369,6 +369,30 @@ src/main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/QuarkEngine.dir/build.make CMakeFiles/QuarkEngine.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
+src/models.o: src/models.cpp.o
+.PHONY : src/models.o
+
+# target to build an object file
+src/models.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/QuarkEngine.dir/build.make CMakeFiles/QuarkEngine.dir/src/models.cpp.o
+.PHONY : src/models.cpp.o
+
+src/models.i: src/models.cpp.i
+.PHONY : src/models.i
+
+# target to preprocess a source file
+src/models.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/QuarkEngine.dir/build.make CMakeFiles/QuarkEngine.dir/src/models.cpp.i
+.PHONY : src/models.cpp.i
+
+src/models.s: src/models.cpp.s
+.PHONY : src/models.s
+
+# target to generate assembly for a file
+src/models.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/QuarkEngine.dir/build.make CMakeFiles/QuarkEngine.dir/src/models.cpp.s
+.PHONY : src/models.cpp.s
+
 src/scene.o: src/scene.cpp.o
 .PHONY : src/scene.o
 
@@ -456,6 +480,9 @@ help:
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
+	@echo "... src/models.o"
+	@echo "... src/models.i"
+	@echo "... src/models.s"
 	@echo "... src/scene.o"
 	@echo "... src/scene.i"
 	@echo "... src/scene.s"

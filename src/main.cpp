@@ -16,7 +16,7 @@ int main() {
     Editor editor;
     FlyCamera camera;
 
-    editor.load_models();
+    load_models();
     load_textures();
 
     while (!WindowShouldClose()) {

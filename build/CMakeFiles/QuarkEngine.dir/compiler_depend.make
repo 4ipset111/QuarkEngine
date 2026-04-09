@@ -1484,6 +1484,7 @@ CMakeFiles/QuarkEngine.dir/src/editor.cpp.o: /home/vova/Quark/src/editor.cpp \
   /home/vova/Quark/src/headers/ImGuizmo.h \
   /home/vova/Quark/src/headers/editor.h \
   /home/vova/Quark/src/headers/entity.h \
+  /home/vova/Quark/src/headers/models.h \
   /home/vova/Quark/src/headers/scene.h \
   /home/vova/Quark/src/headers/tex.h \
   /usr/include/alloca.h \
@@ -1776,6 +1777,7 @@ CMakeFiles/QuarkEngine.dir/src/main.cpp.o: /home/vova/Quark/src/main.cpp \
   /home/vova/Quark/src/headers/camera.h \
   /home/vova/Quark/src/headers/editor.h \
   /home/vova/Quark/src/headers/entity.h \
+  /home/vova/Quark/src/headers/models.h \
   /home/vova/Quark/src/headers/scene.h \
   /home/vova/Quark/src/headers/tex.h \
   /usr/include/alloca.h \
@@ -2729,6 +2731,8 @@ CMakeFiles/QuarkEngine.dir/src/tex.cpp.o: /home/vova/Quark/src/tex.cpp \
 /usr/include/asm-generic/errno.h:
 
 /home/vova/Quark/src/headers/tex.h:
+
+/home/vova/Quark/src/headers/models.h:
 
 /usr/include/c++/13/new:
 

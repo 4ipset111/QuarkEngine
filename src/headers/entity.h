@@ -1,8 +1,8 @@
 #pragma once
 #include "raylib.h"
+#include "rlgl.h"
 #include <string>
 #include <functional>
-#include "rlgl.h"
 
 enum ObjectType { CUBE, SPHERE, CONE, CYLINDER, HEMISPHERE, TORUS };
 

@@ -18,6 +18,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/vova/Quark/src/camera.cpp" "CMakeFiles/QuarkEngine.dir/src/camera.cpp.o" "gcc" "CMakeFiles/QuarkEngine.dir/src/camera.cpp.o.d"
   "/home/vova/Quark/src/editor.cpp" "CMakeFiles/QuarkEngine.dir/src/editor.cpp.o" "gcc" "CMakeFiles/QuarkEngine.dir/src/editor.cpp.o.d"
   "/home/vova/Quark/src/main.cpp" "CMakeFiles/QuarkEngine.dir/src/main.cpp.o" "gcc" "CMakeFiles/QuarkEngine.dir/src/main.cpp.o.d"
+  "/home/vova/Quark/src/models.cpp" "CMakeFiles/QuarkEngine.dir/src/models.cpp.o" "gcc" "CMakeFiles/QuarkEngine.dir/src/models.cpp.o.d"
   "/home/vova/Quark/src/scene.cpp" "CMakeFiles/QuarkEngine.dir/src/scene.cpp.o" "gcc" "CMakeFiles/QuarkEngine.dir/src/scene.cpp.o.d"
   "/home/vova/Quark/src/tex.cpp" "CMakeFiles/QuarkEngine.dir/src/tex.cpp.o" "gcc" "CMakeFiles/QuarkEngine.dir/src/tex.cpp.o.d"
   )

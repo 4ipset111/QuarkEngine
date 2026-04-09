@@ -139,10 +139,24 @@ CMakeFiles/QuarkEngine.dir/src/tex.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/QuarkEngine.dir/src/tex.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/vova/Quark/src/tex.cpp -o CMakeFiles/QuarkEngine.dir/src/tex.cpp.s
 
+CMakeFiles/QuarkEngine.dir/src/models.cpp.o: CMakeFiles/QuarkEngine.dir/flags.make
+CMakeFiles/QuarkEngine.dir/src/models.cpp.o: /home/vova/Quark/src/models.cpp
+CMakeFiles/QuarkEngine.dir/src/models.cpp.o: CMakeFiles/QuarkEngine.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/vova/Quark/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/QuarkEngine.dir/src/models.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/QuarkEngine.dir/src/models.cpp.o -MF CMakeFiles/QuarkEngine.dir/src/models.cpp.o.d -o CMakeFiles/QuarkEngine.dir/src/models.cpp.o -c /home/vova/Quark/src/models.cpp
+
+CMakeFiles/QuarkEngine.dir/src/models.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/QuarkEngine.dir/src/models.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/vova/Quark/src/models.cpp > CMakeFiles/QuarkEngine.dir/src/models.cpp.i
+
+CMakeFiles/QuarkEngine.dir/src/models.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/QuarkEngine.dir/src/models.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/vova/Quark/src/models.cpp -o CMakeFiles/QuarkEngine.dir/src/models.cpp.s
+
 CMakeFiles/QuarkEngine.dir/src/ImGuizmo.cpp.o: CMakeFiles/QuarkEngine.dir/flags.make
 CMakeFiles/QuarkEngine.dir/src/ImGuizmo.cpp.o: /home/vova/Quark/src/ImGuizmo.cpp
 CMakeFiles/QuarkEngine.dir/src/ImGuizmo.cpp.o: CMakeFiles/QuarkEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/vova/Quark/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/QuarkEngine.dir/src/ImGuizmo.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/vova/Quark/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/QuarkEngine.dir/src/ImGuizmo.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/QuarkEngine.dir/src/ImGuizmo.cpp.o -MF CMakeFiles/QuarkEngine.dir/src/ImGuizmo.cpp.o.d -o CMakeFiles/QuarkEngine.dir/src/ImGuizmo.cpp.o -c /home/vova/Quark/src/ImGuizmo.cpp
 
 CMakeFiles/QuarkEngine.dir/src/ImGuizmo.cpp.i: cmake_force
@@ -156,7 +170,7 @@ CMakeFiles/QuarkEngine.dir/src/ImGuizmo.cpp.s: cmake_force
 CMakeFiles/QuarkEngine.dir/libs/imgui/imgui.cpp.o: CMakeFiles/QuarkEngine.dir/flags.make
 CMakeFiles/QuarkEngine.dir/libs/imgui/imgui.cpp.o: /home/vova/Quark/libs/imgui/imgui.cpp
 CMakeFiles/QuarkEngine.dir/libs/imgui/imgui.cpp.o: CMakeFiles/QuarkEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/vova/Quark/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/QuarkEngine.dir/libs/imgui/imgui.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/vova/Quark/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/QuarkEngine.dir/libs/imgui/imgui.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/QuarkEngine.dir/libs/imgui/imgui.cpp.o -MF CMakeFiles/QuarkEngine.dir/libs/imgui/imgui.cpp.o.d -o CMakeFiles/QuarkEngine.dir/libs/imgui/imgui.cpp.o -c /home/vova/Quark/libs/imgui/imgui.cpp
 
 CMakeFiles/QuarkEngine.dir/libs/imgui/imgui.cpp.i: cmake_force
@@ -170,7 +184,7 @@ CMakeFiles/QuarkEngine.dir/libs/imgui/imgui.cpp.s: cmake_force
 CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_draw.cpp.o: CMakeFiles/QuarkEngine.dir/flags.make
 CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_draw.cpp.o: /home/vova/Quark/libs/imgui/imgui_draw.cpp
 CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_draw.cpp.o: CMakeFiles/QuarkEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/vova/Quark/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_draw.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/vova/Quark/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_draw.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_draw.cpp.o -MF CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_draw.cpp.o.d -o CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_draw.cpp.o -c /home/vova/Quark/libs/imgui/imgui_draw.cpp
 
 CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_draw.cpp.i: cmake_force
@@ -184,7 +198,7 @@ CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_draw.cpp.s: cmake_force
 CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_widgets.cpp.o: CMakeFiles/QuarkEngine.dir/flags.make
 CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_widgets.cpp.o: /home/vova/Quark/libs/imgui/imgui_widgets.cpp
 CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_widgets.cpp.o: CMakeFiles/QuarkEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/vova/Quark/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_widgets.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/vova/Quark/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_widgets.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_widgets.cpp.o -MF CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_widgets.cpp.o.d -o CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_widgets.cpp.o -c /home/vova/Quark/libs/imgui/imgui_widgets.cpp
 
 CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_widgets.cpp.i: cmake_force
@@ -198,7 +212,7 @@ CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_widgets.cpp.s: cmake_force
 CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_tables.cpp.o: CMakeFiles/QuarkEngine.dir/flags.make
 CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_tables.cpp.o: /home/vova/Quark/libs/imgui/imgui_tables.cpp
 CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_tables.cpp.o: CMakeFiles/QuarkEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/vova/Quark/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_tables.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/vova/Quark/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_tables.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_tables.cpp.o -MF CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_tables.cpp.o.d -o CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_tables.cpp.o -c /home/vova/Quark/libs/imgui/imgui_tables.cpp
 
 CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_tables.cpp.i: cmake_force
@@ -212,7 +226,7 @@ CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_tables.cpp.s: cmake_force
 CMakeFiles/QuarkEngine.dir/libs/imgui/backends/imgui_impl_opengl3.cpp.o: CMakeFiles/QuarkEngine.dir/flags.make
 CMakeFiles/QuarkEngine.dir/libs/imgui/backends/imgui_impl_opengl3.cpp.o: /home/vova/Quark/libs/imgui/backends/imgui_impl_opengl3.cpp
 CMakeFiles/QuarkEngine.dir/libs/imgui/backends/imgui_impl_opengl3.cpp.o: CMakeFiles/QuarkEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/vova/Quark/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/QuarkEngine.dir/libs/imgui/backends/imgui_impl_opengl3.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/vova/Quark/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object CMakeFiles/QuarkEngine.dir/libs/imgui/backends/imgui_impl_opengl3.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/QuarkEngine.dir/libs/imgui/backends/imgui_impl_opengl3.cpp.o -MF CMakeFiles/QuarkEngine.dir/libs/imgui/backends/imgui_impl_opengl3.cpp.o.d -o CMakeFiles/QuarkEngine.dir/libs/imgui/backends/imgui_impl_opengl3.cpp.o -c /home/vova/Quark/libs/imgui/backends/imgui_impl_opengl3.cpp
 
 CMakeFiles/QuarkEngine.dir/libs/imgui/backends/imgui_impl_opengl3.cpp.i: cmake_force
@@ -226,7 +240,7 @@ CMakeFiles/QuarkEngine.dir/libs/imgui/backends/imgui_impl_opengl3.cpp.s: cmake_f
 CMakeFiles/QuarkEngine.dir/libs/rlImGui/rlImGui.cpp.o: CMakeFiles/QuarkEngine.dir/flags.make
 CMakeFiles/QuarkEngine.dir/libs/rlImGui/rlImGui.cpp.o: /home/vova/Quark/libs/rlImGui/rlImGui.cpp
 CMakeFiles/QuarkEngine.dir/libs/rlImGui/rlImGui.cpp.o: CMakeFiles/QuarkEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/vova/Quark/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object CMakeFiles/QuarkEngine.dir/libs/rlImGui/rlImGui.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/vova/Quark/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object CMakeFiles/QuarkEngine.dir/libs/rlImGui/rlImGui.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/QuarkEngine.dir/libs/rlImGui/rlImGui.cpp.o -MF CMakeFiles/QuarkEngine.dir/libs/rlImGui/rlImGui.cpp.o.d -o CMakeFiles/QuarkEngine.dir/libs/rlImGui/rlImGui.cpp.o -c /home/vova/Quark/libs/rlImGui/rlImGui.cpp
 
 CMakeFiles/QuarkEngine.dir/libs/rlImGui/rlImGui.cpp.i: cmake_force
@@ -244,6 +258,7 @@ QuarkEngine_OBJECTS = \
 "CMakeFiles/QuarkEngine.dir/src/scene.cpp.o" \
 "CMakeFiles/QuarkEngine.dir/src/camera.cpp.o" \
 "CMakeFiles/QuarkEngine.dir/src/tex.cpp.o" \
+"CMakeFiles/QuarkEngine.dir/src/models.cpp.o" \
 "CMakeFiles/QuarkEngine.dir/src/ImGuizmo.cpp.o" \
 "CMakeFiles/QuarkEngine.dir/libs/imgui/imgui.cpp.o" \
 "CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_draw.cpp.o" \
@@ -260,6 +275,7 @@ bin/QuarkEngine: CMakeFiles/QuarkEngine.dir/src/editor.cpp.o
 bin/QuarkEngine: CMakeFiles/QuarkEngine.dir/src/scene.cpp.o
 bin/QuarkEngine: CMakeFiles/QuarkEngine.dir/src/camera.cpp.o
 bin/QuarkEngine: CMakeFiles/QuarkEngine.dir/src/tex.cpp.o
+bin/QuarkEngine: CMakeFiles/QuarkEngine.dir/src/models.cpp.o
 bin/QuarkEngine: CMakeFiles/QuarkEngine.dir/src/ImGuizmo.cpp.o
 bin/QuarkEngine: CMakeFiles/QuarkEngine.dir/libs/imgui/imgui.cpp.o
 bin/QuarkEngine: CMakeFiles/QuarkEngine.dir/libs/imgui/imgui_draw.cpp.o
@@ -269,7 +285,7 @@ bin/QuarkEngine: CMakeFiles/QuarkEngine.dir/libs/imgui/backends/imgui_impl_openg
 bin/QuarkEngine: CMakeFiles/QuarkEngine.dir/libs/rlImGui/rlImGui.cpp.o
 bin/QuarkEngine: CMakeFiles/QuarkEngine.dir/build.make
 bin/QuarkEngine: CMakeFiles/QuarkEngine.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/vova/Quark/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Linking CXX executable bin/QuarkEngine"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/vova/Quark/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Linking CXX executable bin/QuarkEngine"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/QuarkEngine.dir/link.txt --verbose=$(VERBOSE)
 	/usr/bin/cmake -E copy_directory /home/vova/Quark/assets /home/vova/Quark/build/bin/assets
 

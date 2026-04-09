@@ -229,4 +229,5 @@ CMakeFiles/QuarkEngine.dir/src/main.cpp.o: /home/vova/Quark/src/main.cpp \
  /usr/include/c++/13/bits/istream.tcc \
  /usr/include/c++/13/bits/sstream.tcc /usr/include/c++/13/codecvt \
  /usr/include/c++/13/bits/fs_dir.h /usr/include/c++/13/bits/fs_ops.h \
- /usr/include/c++/13/cstring /home/vova/Quark/src/headers/camera.h
+ /usr/include/c++/13/cstring /home/vova/Quark/src/headers/models.h \
+ /home/vova/Quark/src/headers/camera.h

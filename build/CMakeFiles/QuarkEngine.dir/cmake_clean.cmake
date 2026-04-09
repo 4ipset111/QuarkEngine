@@ -19,6 +19,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/QuarkEngine.dir/src/editor.cpp.o.d"
   "CMakeFiles/QuarkEngine.dir/src/main.cpp.o"
   "CMakeFiles/QuarkEngine.dir/src/main.cpp.o.d"
+  "CMakeFiles/QuarkEngine.dir/src/models.cpp.o"
+  "CMakeFiles/QuarkEngine.dir/src/models.cpp.o.d"
   "CMakeFiles/QuarkEngine.dir/src/scene.cpp.o"
   "CMakeFiles/QuarkEngine.dir/src/scene.cpp.o.d"
   "CMakeFiles/QuarkEngine.dir/src/tex.cpp.o"

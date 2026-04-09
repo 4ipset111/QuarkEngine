@@ -12,6 +12,7 @@ set(SOURCE_FILES
     src/scene.cpp
     src/camera.cpp
     src/tex.cpp
+    src/models.cpp
     src/ImGuizmo.cpp
 
     libs/imgui/imgui.cpp
