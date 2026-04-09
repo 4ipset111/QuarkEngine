@@ -22,6 +22,8 @@ int main() {
     load_textures();
 
     while (!WindowShouldClose()) {
+        SetWindowTitle(TextFormat("Quark Engine / FPS: %d", GetFPS()));
+
         BeginDrawing();
         ClearBackground(DARKGRAY);
 

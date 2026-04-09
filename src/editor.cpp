@@ -300,7 +300,17 @@ void Editor::draw_ui() {
     ImGui::SetNextWindowPos(ImVec2(5, 550), ImGuiCond_Once);
     ImGui::Begin("Assets", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 
-    
+    if (fs::is_empty("assets")) {
+        const char* text = "Drag files here";
+
+        ImVec2 windowSize = ImGui::GetWindowSize();
+        ImVec2 textSize = ImGui::CalcTextSize(text);
+
+        ImGui::SetCursorPosX((windowSize.x - textSize.x) * 0.5f);
+        ImGui::SetCursorPosY((windowSize.y - textSize.y) * 0.5f);
+
+        ImGui::Text("%s", text);
+    }
 
     ImGui::End();
 }
