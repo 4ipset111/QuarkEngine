@@ -1,6 +1,7 @@
 #pragma once
 #include "scene.h"
 #include "raylib.h"
+#include "tex.h"
 
 struct Editor {
     Scene scene;

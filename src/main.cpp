@@ -17,7 +17,7 @@ int main() {
     FlyCamera camera;
 
     editor.load_models();
-    editor.load_textures();
+    load_textures();
 
     while (!WindowShouldClose()) {
         BeginDrawing();
@@ -34,7 +34,7 @@ int main() {
         DrawGrid(20, 1.0f);
 
         for (auto& e : editor.scene.entities) {
-            editor.draw_entity_with_texture(e);
+            draw_entity_with_texture(e);
         }
 
         EndMode3D();

@@ -43,6 +43,39 @@ struct Entity {
     Color color;
     Color outline_color;
 
-    Entity() : id(0), uv_scale_vec{1, 1}, uv_scale(1.0f), position{0,0,0}, rotation{0,0,0}, auto_uv(false), texture_repeat_u(1.0f), texture_repeat_v(1.0), scale{1,1,1}, color(WHITE), outline_color(LIGHTGRAY), asset(nullptr), segments(16), type(CUBE) {}
-    Entity(int _id) : id(_id), uv_scale_vec{1, 1}, uv_scale(1.0f), position{0,0,0}, rotation{0,0,0}, auto_uv(false), texture_repeat_u(1.0f), texture_repeat_v(1.0), scale{1,1,1}, color(WHITE), outline_color(LIGHTGRAY), asset(nullptr), segments(16), type(CUBE) {name = "Object " + std::to_string(id);}
+    Entity()
+        : id(0),
+          position{0, 0, 0},
+          rotation{0, 0, 0},
+          scale{1, 1, 1},
+          auto_uv(false),
+          texture_repeat_u(1.0f),
+          texture_repeat_v(1.0f),
+          uv_scale(1.0f),
+          uv_scale_vec{1, 1},
+          color(WHITE),
+          outline_color(LIGHTGRAY),
+          asset(nullptr),
+          segments(16),
+          type(CUBE)
+    {}
+
+    Entity(int _id)
+        : id(_id),
+          position{0, 0, 0},
+          rotation{0, 0, 0},
+          scale{1, 1, 1},
+          auto_uv(false),
+          texture_repeat_u(1.0f),
+          texture_repeat_v(1.0f),
+          uv_scale(1.0f),
+          uv_scale_vec{1, 1},
+          color(WHITE),
+          outline_color(LIGHTGRAY),
+          asset(nullptr),
+          segments(16),
+          type(CUBE)
+    {
+        name = "Object " + std::to_string(id);
+    }
 };

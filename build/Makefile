@@ -393,6 +393,30 @@ src/scene.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/QuarkEngine.dir/build.make CMakeFiles/QuarkEngine.dir/src/scene.cpp.s
 .PHONY : src/scene.cpp.s
 
+src/tex.o: src/tex.cpp.o
+.PHONY : src/tex.o
+
+# target to build an object file
+src/tex.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/QuarkEngine.dir/build.make CMakeFiles/QuarkEngine.dir/src/tex.cpp.o
+.PHONY : src/tex.cpp.o
+
+src/tex.i: src/tex.cpp.i
+.PHONY : src/tex.i
+
+# target to preprocess a source file
+src/tex.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/QuarkEngine.dir/build.make CMakeFiles/QuarkEngine.dir/src/tex.cpp.i
+.PHONY : src/tex.cpp.i
+
+src/tex.s: src/tex.cpp.s
+.PHONY : src/tex.s
+
+# target to generate assembly for a file
+src/tex.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/QuarkEngine.dir/build.make CMakeFiles/QuarkEngine.dir/src/tex.cpp.s
+.PHONY : src/tex.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -435,6 +459,9 @@ help:
 	@echo "... src/scene.o"
 	@echo "... src/scene.i"
 	@echo "... src/scene.s"
+	@echo "... src/tex.o"
+	@echo "... src/tex.i"
+	@echo "... src/tex.s"
 .PHONY : help
 
 
