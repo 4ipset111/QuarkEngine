@@ -17,7 +17,7 @@ FlyCamera::FlyCamera() {
 }
 
 void FlyCamera::update() {
-    if (ImGuizmo::IsUsing() || ImGuizmo::IsOver() || ImGui::GetIO().WantCaptureMouse)
+    if (!active && (ImGuizmo::IsUsing() || ImGui::GetIO().WantCaptureMouse))
         return;
 
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
