@@ -45,6 +45,7 @@ void Editor::handle_input() {
         UnloadDroppedFiles(dropped);
         refresh_textures(&scene);
         refresh_assets();
+        refresh_models();
     }
 
 }
@@ -214,8 +215,11 @@ void Editor::draw_ui() {
                 e->segments = 16; 
                 update_model(e); 
                 store_uv(e);
-            } else {
+            } 
+            
+            else {
                 e->model = e->asset->loadedModel;
+                store_uv(e);
             }
         }
 

@@ -1,7 +1,15 @@
 #include "headers/models.h"
 #include <unordered_set>
+#include <filesystem>
 
 std::vector<ModelAsset> assets;
+
+bool is_model_file(const std::filesystem::path& p) {
+    std::string ext = p.extension().string();
+    for (auto& c : ext) c = (char)tolower(c);
+
+    return ext == ".obj" || ext == ".glb" || ext == ".gltf" || ext == ".fbx" || ext == ".iqm";
+}
 
 void load_models() {
     ModelAsset cube_asset;
@@ -69,4 +77,69 @@ void unload_models() {
     }
 
     assets.clear();
+}
+
+void load_external_models() {
+    namespace fs = std::filesystem;
+
+    if (!fs::exists("assets")) fs::create_directories("assets");
+
+    for (auto& entry : fs::directory_iterator("assets")) {
+        if (!entry.is_regular_file()) continue;
+        if (!is_model_file(entry.path())) continue;
+
+        ModelAsset asset;
+        asset.name = entry.path().filename().string();
+        asset.isProcedural = false;
+        asset.filepath = entry.path().string();
+
+        asset.loadedModel = LoadModel(asset.filepath.c_str());
+
+        assets.push_back(asset);
+    }
+}
+
+void refresh_models() {
+    namespace fs = std::filesystem;
+
+    std::unordered_map<std::string, Model> old;
+
+    for (auto& a : assets) {
+        if (!a.isProcedural && a.loadedModel.meshCount > 0)
+            old[a.name] = a.loadedModel;
+    }
+
+    std::vector<ModelAsset> next;
+
+    for (auto& a : assets)
+        if (a.isProcedural)
+            next.push_back(a);
+
+    for (auto& entry : fs::directory_iterator("assets")) {
+        if (!is_model_file(entry.path())) continue;
+
+        std::string name = entry.path().filename().string();
+
+        ModelAsset a;
+        a.name = name;
+        a.isProcedural = false;
+        a.filepath = entry.path().string();
+
+        if (old.count(name)) {
+            a.loadedModel = old[name];
+            old.erase(name);
+        } 
+        
+        else {
+            a.loadedModel = LoadModel(a.filepath.c_str());
+        }
+
+        next.push_back(a);
+    }
+
+    for (auto& [_, m] : old) {
+        UnloadModel(m);
+    }
+
+    assets = std::move(next);
 }

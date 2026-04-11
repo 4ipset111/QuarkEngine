@@ -8,6 +8,8 @@ enum ObjectType { CUBE, SPHERE, CONE, CYLINDER, HEMISPHERE, TORUS };
 
 struct ModelAsset {
     std::string name;
+    std::string filepath;
+    
     ObjectType type;
     bool isProcedural;
     std::function<Model(int)> generator;
