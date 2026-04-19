@@ -6,6 +6,25 @@
 #include "headers/editor.h"
 #include "headers/camera.h"
 
+static Entity make_entity_from_asset(Scene& scene, ModelAsset* asset) {
+    Entity entity;
+    entity.id = static_cast<int>(scene.entities.size());
+    entity.type = asset->type;
+    entity.asset = asset;
+    entity.segments = 16;
+    entity.name = scene.make_default_name_for(entity);
+
+    if (asset->isProcedural) {
+        entity.model = asset->generator(entity.segments);
+        store_uv(&entity);
+    } else {
+        entity.model = asset->loadedModel;
+    }
+
+    entity.texture = {0};
+    return entity;
+}
+
 int main() {
     if (!std::filesystem::exists("assets")) std::filesystem::create_directory("assets");
 
@@ -25,6 +44,26 @@ int main() {
 
     load_models();
     load_textures();
+
+    for (auto& asset : assets) {
+        if (asset.type != SPHERE) continue;
+
+        Entity light_entity = make_entity_from_asset(editor.scene, &asset);
+        light_entity.has_light = true;
+        light_entity.name = editor.scene.make_default_name_for(light_entity);
+        light_entity.position = { 2.0f, 3.0f, 2.0f };
+        light_entity.scale = { 0.2f, 0.2f, 0.2f };
+        light_entity.color = WHITE;
+        light_entity.light = create_lighting(light_entity.position, WHITE);
+        light_entity.light.range = 12.0f;
+        light_entity.light.intensity = 1.5f;
+        light_entity.light.id = allocate_light_id();
+        light_entity.light.light = CreateLight(LIGHT_POINT, light_entity.position, Vector3Zero(), light_entity.light.color, shader);
+        light_entity.light_created = true;
+
+        editor.scene.entities.push_back(light_entity);
+        break;
+    }
 
     while (!WindowShouldClose()) {
         SetWindowTitle(TextFormat("Quark Engine / FPS: %d", GetFPS()));

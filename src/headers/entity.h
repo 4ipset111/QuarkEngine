@@ -7,6 +7,18 @@
 
 enum ObjectType { CUBE, SPHERE, CONE, CYLINDER, HEMISPHERE, TORUS };
 
+inline const char* object_type_name(ObjectType type) {
+    switch (type) {
+        case CUBE: return "Cube";
+        case SPHERE: return "Sphere";
+        case CONE: return "Cone";
+        case CYLINDER: return "Cylinder";
+        case HEMISPHERE: return "HemiSphere";
+        case TORUS: return "Torus";
+        default: return "Object";
+    }
+}
+
 struct ModelAsset {
     std::string name;
     std::string filepath;
@@ -84,6 +96,6 @@ struct Entity {
           segments(16),
           type(CUBE)
     {
-        name = "Object " + std::to_string(id);
+        name = object_type_name(type);
     }
 };

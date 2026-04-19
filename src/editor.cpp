@@ -16,6 +16,11 @@ const float icon_size = 64.0f;
 const float padding = 10.0f;
 const float cell_size = icon_size + padding;
 
+static void assign_entity_name(Entity& entity, const char* new_name) {
+    if (!new_name || new_name[0] == '\0') return;
+    entity.name = new_name;
+}
+
 void Editor::handle_input() {
     float speed = 0.1f;
     Entity* e = scene.get_selected();
@@ -113,8 +118,8 @@ void Editor::draw_ui(Shader shader) {
 
             if (ImGui::MenuItem("Dublicate")) {
                 Entity ent_copy = ent;
-                ent_copy.name = ent.name + " copy";
                 ent_copy.id = static_cast<int>(scene.entities.size());
+                ent_copy.name = scene.make_default_name_for(ent_copy);
                 scene.entities.push_back(ent_copy);
             }
 
@@ -130,10 +135,10 @@ void Editor::draw_ui(Shader shader) {
                 if (ImGui::MenuItem(a.name.c_str())) {
                     Entity e;
                     e.id = static_cast<int>(scene.entities.size());
-                    e.name = "Object " + std::to_string(e.id);
                     e.type = a.type;
                     e.asset = &a;
                     e.segments = 16;
+                    e.name = scene.make_default_name_for(e);
 
                     if (a.isProcedural) {
                         e.model = a.generator(e.segments);
@@ -153,14 +158,13 @@ void Editor::draw_ui(Shader shader) {
 
     if (renaming_index != -1) { 
         ImGui::OpenPopup("Rename"); 
-        renaming_index = -2; 
     }
     
     if (ImGui::BeginPopupModal("Rename", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::InputText("##rename", rename_buf, IM_ARRAYSIZE(rename_buf));
         if (ImGui::Button("OK")) {
-            if (renaming_index == -2) {
-                scene.entities[scene.selected].name = rename_buf;
+            if (renaming_index >= 0 && renaming_index < static_cast<int>(scene.entities.size())) {
+                assign_entity_name(scene.entities[renaming_index], rename_buf);
             }
             renaming_index = -1;
             ImGui::CloseCurrentPopup();
@@ -187,6 +191,14 @@ void Editor::draw_ui(Shader shader) {
 
     Entity* e = scene.get_selected();
     if (e) {
+        ImGui::Separator();
+        char inspector_name[128] = {};
+        const size_t copied = e->name.copy(inspector_name, sizeof(inspector_name) - 1);
+        inspector_name[copied] = '\0';
+        if (ImGui::InputText("Name", inspector_name, IM_ARRAYSIZE(inspector_name))) {
+            assign_entity_name(*e, inspector_name);
+        }
+
         ImGui::Separator();
         ImGui::Text("Transform");
         float pos[3] = { e->position.x, e->position.y, e->position.z };
@@ -334,13 +346,11 @@ void Editor::draw_ui(Shader shader) {
             ImGui::InputFloat("Intensity", &e->light.intensity, 0.1f, 1.0f, "%.2f");
             ImGui::InputFloat("Range", &e->light.range, 0.1f, 1.0f, "%.2f");
 
-            static int light_counter = 0;
-
             if (!e->light_created)
             {
                 e->light = create_lighting(e->position, e->light.color);
 
-                e->light.id = light_counter++;
+                e->light.id = allocate_light_id();
                 e->light.light = CreateLight(LIGHT_POINT, e->position, Vector3Zero(), e->light.color, shader);
 
                 e->light_created = true;

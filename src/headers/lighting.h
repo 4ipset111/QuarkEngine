@@ -19,3 +19,4 @@ struct Lighting {
 
 Lighting create_lighting(Vector3 pos, Color color);
 void update_lighting(Shader shader, Lighting& l);
+int allocate_light_id();
