@@ -1,6 +1,7 @@
 #pragma once
 #include "raylib.h"
 #include "rlgl.h"
+#include "lighting.h"
 #include <string>
 #include <functional>
 
@@ -44,6 +45,11 @@ struct Entity {
 
     Color color;
     Color outline_color;
+
+    bool has_light = false;
+    bool light_created = false;
+    bool shader_assigned = false;
+    Lighting light;
 
     Entity()
         : id(0),

@@ -2,6 +2,7 @@
 #include "imgui.h"
 #include "raymath.h"
 #include "headers/editor.h"
+#include "headers/lighting.h"
 #include "headers/entity.h"
 #include "headers/ImGuizmo.h"
 
@@ -78,7 +79,7 @@ void Editor::draw_gizmo(Camera3D camera) {
     }
 }
 
-void Editor::draw_ui() {
+void Editor::draw_ui(Shader shader) {
     ImGui::SetNextWindowSize(ImVec2(150, 540), ImGuiCond_Once);
     ImGui::SetNextWindowPos(ImVec2(5, 5), ImGuiCond_Once);
     ImGui::Begin("Hierarchy", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
@@ -95,8 +96,10 @@ void Editor::draw_ui() {
         if (ImGui::BeginPopupContextItem("context", 1)) {
             if (ImGui::MenuItem("Delete")) {
                 scene.entities.erase(scene.entities.begin() + i);
+
                 if (scene.selected == i) scene.selected = -1;
                 else if (scene.selected > i) scene.selected--;
+
                 ImGui::EndPopup();
                 ImGui::PopID();
                 break;
@@ -106,6 +109,13 @@ void Editor::draw_ui() {
                 renaming_index = i;
                 const size_t copied = ent.name.copy(rename_buf, sizeof(rename_buf) - 1);
                 rename_buf[copied] = '\0';
+            }
+
+            if (ImGui::MenuItem("Dublicate")) {
+                Entity ent_copy = ent;
+                ent_copy.name = ent.name + " copy";
+                ent_copy.id = static_cast<int>(scene.entities.size());
+                scene.entities.push_back(ent_copy);
             }
 
             ImGui::EndPopup();
@@ -119,7 +129,8 @@ void Editor::draw_ui() {
             for (auto& a : assets) {
                 if (ImGui::MenuItem(a.name.c_str())) {
                     Entity e;
-                    e.name = a.name;
+                    e.id = static_cast<int>(scene.entities.size());
+                    e.name = "Object " + std::to_string(e.id);
                     e.type = a.type;
                     e.asset = &a;
                     e.segments = 16;
@@ -181,6 +192,7 @@ void Editor::draw_ui() {
         float pos[3] = { e->position.x, e->position.y, e->position.z };
         float rot[3] = { e->rotation.x, e->rotation.y, e->rotation.z };
         float scl[3] = { e->scale.x, e->scale.y, e->scale.z };
+
         if (ImGui::DragFloat3("Position", pos, 0.1f)) e->position = { pos[0], pos[1], pos[2] };
         if (ImGui::DragFloat3("Rotation", rot, 1.0f)) e->rotation = { rot[0], rot[1], rot[2] };
         if (ImGui::DragFloat3("Scale", scl, 0.1f)) e->scale = { scl[0], scl[1], scl[2] };
@@ -303,6 +315,51 @@ void Editor::draw_ui() {
             (unsigned char)(outline[2]*255),
             (unsigned char)(outline[3]*255)
         };
+
+        ImGui::Separator();
+        ImGui::Text("Lighting");
+        
+        ImGui::Checkbox("Has Light", &e->has_light);
+
+        if (e->has_light)
+        {
+            float light_color[4] = { e->light.color.r / 255.f, e->light.color.g / 255.f, e->light.color.b / 255.f, e->light.color.a / 255.f };
+            if (ImGui::ColorEdit4("Light Color", light_color)) e->light.color = {
+                (unsigned char)(light_color[0]*255),
+                (unsigned char)(light_color[1]*255),
+                (unsigned char)(light_color[2]*255),
+                (unsigned char)(light_color[3]*255)
+            };
+
+            ImGui::InputFloat("Intensity", &e->light.intensity, 0.1f, 1.0f, "%.2f");
+            ImGui::InputFloat("Range", &e->light.range, 0.1f, 1.0f, "%.2f");
+
+            static int light_counter = 0;
+
+            if (!e->light_created)
+            {
+                e->light = create_lighting(e->position, e->light.color);
+
+                e->light.id = light_counter++;
+                e->light.light = CreateLight(LIGHT_POINT, e->position, Vector3Zero(), e->light.color, shader);
+
+                e->light_created = true;
+            }
+
+            e->light.position = e->position;
+            e->light.light.position = e->position;
+            e->light.light.color = e->light.color;
+
+            e->light.enabled = true;
+
+            update_lighting(shader, e->light);
+        }
+
+        else if (e->light_created)
+        {
+            e->light.enabled = false;
+            update_lighting(shader, e->light);
+        }
     }
 
     ImGui::End();

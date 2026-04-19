@@ -20,6 +20,8 @@ set(SOURCE_FILES
     src/ImGuizmo.cpp
     src/tex.cpp
     src/models.cpp
+    src/rlights.cpp
+    src/lighting.cpp
     quark-libs/imgui/include/imgui.cpp
     quark-libs/imgui/include/imgui_draw.cpp
     quark-libs/imgui/include/imgui_widgets.cpp
