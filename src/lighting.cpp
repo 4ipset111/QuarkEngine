@@ -18,6 +18,12 @@ void update_lighting(Shader shader, Lighting& l) {
     UpdateLightValues(shader, l.light);
 }
 
+int allocate_light_id()
+{
+    static int light_id_counter = 0;
+    return light_id_counter++;
+}
+
 Lighting create_lighting(Vector3 pos, Color color)
 {
     Lighting l = {};
