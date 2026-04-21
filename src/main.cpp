@@ -3,6 +3,7 @@
 #include "imgui.h"
 #include "raymath.h"
 #include "rlgl.h"
+#include "headers/lighting.h"
 #include "headers/editor.h"
 #include "headers/camera.h"
 
@@ -119,6 +120,10 @@ int main() {
 
     Shader shader = LoadShader("assets/lighting.vs", "assets/lighting.fs");
 
+    int ambient_loc = GetShaderLocation(shader, "ambient");
+    float ambient[4] = { 0.15f, 0.15f, 0.15f, 1.0f };
+    SetShaderValue(shader, ambient_loc, ambient, SHADER_UNIFORM_VEC4);
+
     int emission_color_loc = GetShaderLocation(shader, "emissionColor");
     int emission_power_loc = GetShaderLocation(shader, "emissionPower");
     
@@ -173,13 +178,12 @@ int main() {
             }
 
             if (e.has_light && e.light_created)
-                update_lighting(shader, e.light);
-
-            if (!e.has_light && e.light_created)
             {
-                e.light.enabled = false;
+                e.light.position = e.position;
+                e.light.light.position = e.position;
+                e.light.light.color = e.light.color;
+                e.light.enabled = true;
                 update_lighting(shader, e.light);
-                e.light_created = false;
             }
 
             if (e.has_light)

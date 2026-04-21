@@ -100,7 +100,13 @@ void Editor::draw_ui(Shader shader) {
 
         if (ImGui::BeginPopupContextItem(TextFormat("context_%d", ent.id))) {
             if (ImGui::MenuItem("Delete")) {
-                 Entity& ent = scene.entities[i];
+                Entity& ent = scene.entities[i];
+
+                if (ent.has_light && ent.light_created) {
+                    ent.light.enabled = false;
+                    if (ent.light.id != -1) update_lighting(shader, ent.light);
+                    free_light_id(ent.light.id);
+                }
 
                 scene.entities.erase(scene.entities.begin() + i);
 
@@ -122,6 +128,13 @@ void Editor::draw_ui(Shader shader) {
                 Entity ent_copy = ent;
                 ent_copy.id = static_cast<int>(scene.entities.size());
                 ent_copy.name = scene.make_default_name_for(ent_copy);
+
+                if (ent_copy.has_light) {
+                    ent_copy.light_created = false;
+                    ent_copy.light.id = -1;
+                    ent_copy.light.light = {0};
+                }
+
                 scene.entities.push_back(ent_copy);
             }
 
@@ -328,48 +341,57 @@ void Editor::draw_ui(Shader shader) {
             (unsigned char)(outline[1]*255),
             (unsigned char)(outline[2]*255),
             (unsigned char)(outline[3]*255)
-        };
+        }; 
 
         ImGui::Separator();
         ImGui::Text("Lighting");
-        
+
         ImGui::Checkbox("Has Light", &e->has_light);
+
         if (e->has_light)
         {
-            float light_color[4] = { e->light.color.r / 255.f, e->light.color.g / 255.f, e->light.color.b / 255.f, e->light.color.a / 255.f };
-            if (ImGui::ColorEdit4("Light Color", light_color)) e->light.color = {
-                (unsigned char)(light_color[0]*255),
-                (unsigned char)(light_color[1]*255),
-                (unsigned char)(light_color[2]*255),
-                (unsigned char)(light_color[3]*255)
+            float light_color[4] = {
+                e->light.color.r / 255.f,
+                e->light.color.g / 255.f,
+                e->light.color.b / 255.f,
+                e->light.color.a / 255.f
             };
+
+            if (ImGui::ColorEdit4("Light Color", light_color))
+            {
+                e->light.color = {
+                    (unsigned char)(light_color[0]*255),
+                    (unsigned char)(light_color[1]*255),
+                    (unsigned char)(light_color[2]*255),
+                    (unsigned char)(light_color[3]*255)
+                };
+            }
 
             ImGui::InputFloat("Intensity", &e->light.intensity, 0.1f, 1.0f, "%.2f");
             ImGui::InputFloat("Range", &e->light.range, 0.1f, 1.0f, "%.2f");
 
             if (!e->light_created)
             {
-                e->light = create_lighting(e->position, e->light.color);
+                int new_id = allocate_light_id();
+                if (new_id == -1) { e->has_light = false; }
+                else
+                {
+                    e->light = create_lighting(e->position, e->light.color);
+                    e->light.id = new_id;
 
-                e->light.id = allocate_light_id();
-                e->light.light = CreateLight(LIGHT_POINT, e->position, Vector3Zero(), e->light.color, shader);
-
-                e->light_created = true;
+                    e->light.light = create_light_at_slot(new_id, LIGHT_POINT, e->position, Vector3Zero(), e->light.color, shader);
+                    e->light_created = true;
+                }
             }
-
-            e->light.position = e->position;
-            e->light.light.position = e->position;
-            e->light.light.color = e->light.color;
-
-            e->light.enabled = true;
-
-            update_lighting(shader, e->light);
         }
 
         else if (e->light_created)
         {
             e->light.enabled = false;
-            update_lighting(shader, e->light);
+            if (e->light.id != -1)
+            {
+                update_lighting(shader, e->light);
+            }
         }
     }
 
@@ -430,6 +452,7 @@ void Editor::draw_assets_ui() {
             if (ImGui::BeginPopupContextItem("AssetContext")) {
                 if (ImGui::MenuItem("Delete")) {
                     fs::remove(fs::path("assets") / asset_entries[i].filename);
+
                     asset_entries.erase(asset_entries.begin() + i);
 
                     if (selected_asset_index == i) selected_asset_index = -1;

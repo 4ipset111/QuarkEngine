@@ -37,10 +37,8 @@ void main()
     vec4 texelColor = texture(texture0, fragTexCoord);
     vec3 normal = normalize(fragNormal);
     vec3 viewD = normalize(viewPos - fragPosition);
-
     vec3 lightAccum = vec3(0.0);
     vec3 specular = vec3(0.0);
-
     vec4 tint = colDiffuse * fragColor;
 
     for (int i = 0; i < MAX_LIGHTS; i++)
@@ -48,21 +46,14 @@ void main()
         if (lights[i].enabled == 1)
         {
             vec3 lightDir;
-
             if (lights[i].type == LIGHT_DIRECTIONAL)
-            {
                 lightDir = -normalize(lights[i].target - lights[i].position);
-            }
             else
-            {
                 lightDir = normalize(lights[i].position - fragPosition);
-            }
 
             float NdotL = max(dot(normal, lightDir), 0.0);
-
             float dist = length(lights[i].position - fragPosition);
             float attenuation = clamp(1.0 - (dist / lights[i].range), 0.0, 1.0);
-
             attenuation *= attenuation;
             lightAccum += lights[i].color.rgb * NdotL * attenuation * lights[i].intensity;
 
@@ -74,9 +65,8 @@ void main()
         }
     }
 
-    vec3 color = texelColor.rgb * (tint.rgb * lightAccum + specular);
-
-    color += texelColor.rgb * (ambient.rgb * 0.1);
+    vec3 ambientLight = ambient.rgb * 0.15;                          // always applied
+    vec3 color = texelColor.rgb * tint.rgb * (ambientLight + lightAccum) + specular;
     color += emissionColor * emissionPower;
 
     finalColor = vec4(color, texelColor.a);
