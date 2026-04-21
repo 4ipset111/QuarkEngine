@@ -21,6 +21,49 @@ static void assign_entity_name(Entity& entity, const char* new_name) {
     entity.name = new_name;
 }
 
+void Editor::save_state() {
+    SceneState state;
+    state.entities = scene.entities;
+    state.selected = scene.selected;
+
+    undo_stack.push(state);
+
+    while (!redo_stack.empty())
+        redo_stack.pop();
+}
+
+void Editor::undo() {
+    if (undo_stack.empty()) return;
+
+    SceneState current;
+    current.entities = scene.entities;
+    current.selected = scene.selected;
+
+    redo_stack.push(current);
+
+    SceneState prev = undo_stack.top();
+    undo_stack.pop();
+
+    scene.entities = prev.entities;
+    scene.selected = prev.selected;
+}
+
+void Editor::redo() {
+    if (redo_stack.empty()) return;
+
+    SceneState current;
+    current.entities = scene.entities;
+    current.selected = scene.selected;
+
+    undo_stack.push(current);
+
+    SceneState next = redo_stack.top();
+    redo_stack.pop();
+
+    scene.entities = next.entities;
+    scene.selected = next.selected;
+}
+
 void Editor::handle_input() {
     float speed = 0.1f;
     Entity* e = scene.get_selected();
@@ -30,6 +73,8 @@ void Editor::handle_input() {
     if (IsKeyPressed(KEY_S)) gizmo_mode = ImGuizmo::SCALE;
 
     if (IsFileDropped()) {
+        save_state();
+        
         FilePathList dropped = LoadDroppedFiles();
 
         if (!fs::exists("assets")) fs::create_directories("assets");
@@ -46,6 +91,49 @@ void Editor::handle_input() {
         refresh_models();
     }
 
+    bool ctrl = IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL);
+
+    static float last_undo_time = 0;
+    static float last_redo_time = 0;
+    static bool undo_key_was_pressed = false;
+    static bool redo_key_was_pressed = false;
+    static float undo_hold_start = 0;
+    static float redo_hold_start = 0;
+    float current_time = GetTime();
+    
+    if (ctrl && IsKeyDown(KEY_Z)) {
+        if (!undo_key_was_pressed) {
+            undo();
+            undo_key_was_pressed = true;
+            undo_hold_start = current_time;
+            last_undo_time = current_time;
+        } else if (current_time - undo_hold_start > 0.5f) {
+            if (current_time - last_undo_time > 0.15f) {
+                undo();
+                last_undo_time = current_time;
+            }
+        }
+    } else {
+        undo_key_was_pressed = false;
+        undo_hold_start = 0;
+    }
+    
+    if (ctrl && IsKeyDown(KEY_Y)) {
+        if (!redo_key_was_pressed) {
+            redo();
+            redo_key_was_pressed = true;
+            redo_hold_start = current_time;
+            last_redo_time = current_time;
+        } else if (current_time - redo_hold_start > 0.5f) {
+            if (current_time - last_redo_time > 0.15f) {
+                redo();
+                last_redo_time = current_time;
+            }
+        }
+    } else {
+        redo_key_was_pressed = false;
+        redo_hold_start = 0;
+    }
 }
 
 void Editor::draw_gizmo(Camera3D camera) {
@@ -75,6 +163,12 @@ void Editor::draw_gizmo(Camera3D camera) {
     ImGuizmo::RecomposeMatrixFromComponents(t, r, s, matrix);
     ImGuizmo::Manipulate(view_mat, proj_mat, gizmo_mode, ImGuizmo::WORLD, matrix);
 
+    static bool was_using = false;
+
+    if (ImGuizmo::IsUsing() && !was_using) {
+        save_state();
+    }
+
     if (ImGuizmo::IsUsing()) {
         float nt[3], nr[3], ns[3];
         ImGuizmo::DecomposeMatrixToComponents(matrix, nt, nr, ns);
@@ -82,6 +176,8 @@ void Editor::draw_gizmo(Camera3D camera) {
         e->rotation = { nr[0], nr[1], nr[2] };
         e->scale    = { ns[0], ns[1], ns[2] };
     }
+
+    was_using = ImGuizmo::IsUsing();
 }
 
 void Editor::draw_ui(Shader shader) {
@@ -100,6 +196,8 @@ void Editor::draw_ui(Shader shader) {
 
         if (ImGui::BeginPopupContextItem(TextFormat("context_%d", ent.id))) {
             if (ImGui::MenuItem("Delete")) {
+                save_state();
+
                 Entity& ent = scene.entities[i];
 
                 if (ent.has_light && ent.light_created) {
@@ -119,12 +217,16 @@ void Editor::draw_ui(Shader shader) {
             }
 
             if (ImGui::MenuItem("Rename")) {
+                save_state();
+
                 renaming_index = i;
                 const size_t copied = ent.name.copy(rename_buf, sizeof(rename_buf) - 1);
                 rename_buf[copied] = '\0';
             }
 
-            if (ImGui::MenuItem("Dublicate")) {
+            if (ImGui::MenuItem("Duplicate")) {
+                save_state();
+
                 Entity ent_copy = ent;
                 ent_copy.id = static_cast<int>(scene.entities.size());
                 ent_copy.name = scene.make_default_name_for(ent_copy);
@@ -148,6 +250,8 @@ void Editor::draw_ui(Shader shader) {
 
     if (ImGui::BeginPopupContextWindow("HierarchyContext", ImGuiPopupFlags_NoOpenOverItems)) {
         if (ImGui::BeginMenu("Create")) {
+            save_state();
+
             for (auto& a : assets) {
                 if (ImGui::MenuItem(a.name.c_str())) {
                     Entity e;
@@ -212,8 +316,16 @@ void Editor::draw_ui(Shader shader) {
         char inspector_name[128] = {};
         const size_t copied = e->name.copy(inspector_name, sizeof(inspector_name) - 1);
         inspector_name[copied] = '\0';
+        
+        static std::string last_name;
         if (ImGui::InputText("Name", inspector_name, IM_ARRAYSIZE(inspector_name))) {
-            assign_entity_name(*e, inspector_name);
+            if (last_name != inspector_name) {
+                save_state();
+                assign_entity_name(*e, inspector_name);
+                last_name = inspector_name;
+            }
+        } else {
+            last_name = inspector_name;
         }
 
         ImGui::Separator();
@@ -222,22 +334,49 @@ void Editor::draw_ui(Shader shader) {
         float rot[3] = { e->rotation.x, e->rotation.y, e->rotation.z };
         float scl[3] = { e->scale.x, e->scale.y, e->scale.z };
 
-        if (ImGui::DragFloat3("Position", pos, 0.1f)) e->position = { pos[0], pos[1], pos[2] };
-        if (ImGui::DragFloat3("Rotation", rot, 1.0f)) e->rotation = { rot[0], rot[1], rot[2] };
-        if (ImGui::DragFloat3("Scale", scl, 0.1f)) e->scale = { scl[0], scl[1], scl[2] };
+        static Vector3 last_pos, last_rot, last_scl;
+        
+        if (ImGui::DragFloat3("Position", pos, 0.1f)) {
+            if (last_pos.x != pos[0] || last_pos.y != pos[1] || last_pos.z != pos[2]) {
+                save_state();
+                last_pos = {pos[0], pos[1], pos[2]};
+            }
+            e->position = { pos[0], pos[1], pos[2] };
+        }
+        
+        if (ImGui::DragFloat3("Rotation", rot, 1.0f)) {
+            if (last_rot.x != rot[0] || last_rot.y != rot[1] || last_rot.z != rot[2]) {
+                save_state();
+                last_rot = {rot[0], rot[1], rot[2]};
+            }
+            e->rotation = { rot[0], rot[1], rot[2] };
+        }
+        
+        if (ImGui::DragFloat3("Scale", scl, 0.1f)) {
+            if (last_scl.x != scl[0] || last_scl.y != scl[1] || last_scl.z != scl[2]) {
+                save_state();
+                last_scl = {scl[0], scl[1], scl[2]};
+            }
+            e->scale = { scl[0], scl[1], scl[2] };
+        }
 
         ImGui::Separator();
         ImGui::Text("Mesh");
-
 
         if (e->asset && e->asset->isProcedural) {
             int max_seg = 125;
             if (e->type == SPHERE || e->type == HEMISPHERE) max_seg = 100;
 
+            static int last_segments = 0;
             if (ImGui::DragInt("Segments", &e->segments, 1, 3, max_seg)) {
-                update_model(e);
-                store_uv(e);
-                e->shader_assigned = false;
+                if (last_segments != e->segments) {
+                    save_state();
+                    last_segments = e->segments;
+                    
+                    update_model(e);
+                    store_uv(e);
+                    e->shader_assigned = false;
+                }
             }
         }
         
@@ -251,26 +390,32 @@ void Editor::draw_ui(Shader shader) {
             if (e->asset && e->asset->name == assets[i].name) current_model_index = i;
         }
 
+        static int last_model_index = -1;
         if (!model_names.empty() && ImGui::Combo("Model", &current_model_index, model_names.data(), static_cast<int>(model_names.size()))) {
-            e->asset = &assets[current_model_index];
-            e->type  = e->asset->type;
+            if (last_model_index != current_model_index) {
+                save_state();
+                last_model_index = current_model_index;
+                
+                e->asset = &assets[current_model_index];
+                e->type  = e->asset->type;
 
-            if (e->model.meshCount > 0) {
-                UnloadModel(e->model);
-                e->model = {0};
-            }
+                if (e->model.meshCount > 0) {
+                    UnloadModel(e->model);
+                    e->model = {0};
+                }
 
-            e->shader_assigned = false;
+                e->shader_assigned = false;
 
-            if (e->asset->isProcedural) { 
-                e->segments = 16; 
-                update_model(e); 
-                store_uv(e);
-            } 
-            
-            else {
-                e->model = e->asset->loadedModel;
-                store_uv(e);
+                if (e->asset->isProcedural) { 
+                    e->segments = 16; 
+                    update_model(e); 
+                    store_uv(e);
+                } 
+                
+                else {
+                    e->model = e->asset->loadedModel;
+                    store_uv(e);
+                }
             }
         }
 
@@ -286,77 +431,137 @@ void Editor::draw_ui(Shader shader) {
         ImGui::Separator();
         ImGui::Text("Material");
 
+        static int last_texture_index = -1;
         if (ImGui::Combo("Texture", &current_texture_index, texture_names.data(), texture_names.size())) {
-            if (current_texture_index == 0) {
-                static Texture2D white_tex = {0};
+            if (last_texture_index != current_texture_index) {
+                save_state();
+                last_texture_index = current_texture_index;
+                
+                if (current_texture_index == 0) {
+                    static Texture2D white_tex = {0};
 
-                if (white_tex.id == 0) {
-                    Image img = GenImageColor(1, 1, WHITE);
-                    white_tex = LoadTextureFromImage(img);
-                    UnloadImage(img);
+                    if (white_tex.id == 0) {
+                        Image img = GenImageColor(1, 1, WHITE);
+                        white_tex = LoadTextureFromImage(img);
+                        UnloadImage(img);
+                    }
+
+                    e->texture = white_tex;
+
+                    for (int i = 0; i < e->model.materialCount; i++) {
+                        e->model.materials[i].maps[MATERIAL_MAP_DIFFUSE].texture = e->texture;
+                        e->model.materials[i].maps[MATERIAL_MAP_DIFFUSE].color = WHITE;
+                    }
+                } 
+                
+                else {
+                    e->texture = texture_options[current_texture_index].texture;
+                    for (int i = 0; i < e->model.materialCount; i++)
+                        e->model.materials[i].maps[MATERIAL_MAP_DIFFUSE].texture = e->texture;
                 }
-
-                e->texture = white_tex;
-
-                for (int i = 0; i < e->model.materialCount; i++) {
-                    e->model.materials[i].maps[MATERIAL_MAP_DIFFUSE].texture = e->texture;
-                    e->model.materials[i].maps[MATERIAL_MAP_DIFFUSE].color = WHITE;
-                }
-            } 
-            
-            else {
-                e->texture = texture_options[current_texture_index].texture;
-                for (int i = 0; i < e->model.materialCount; i++)
-                    e->model.materials[i].maps[MATERIAL_MAP_DIFFUSE].texture = e->texture;
             }
         }
 
-        ImGui::Checkbox("Stretch Texture", &e->texture_stretch);
+        static bool last_stretch_texture = false;
+        if (ImGui::Checkbox("Stretch Texture", &e->texture_stretch)) {
+            if (last_stretch_texture != e->texture_stretch) {
+                save_state();
+                last_stretch_texture = e->texture_stretch;
+            }
+        }
 
         if (!e->texture_stretch) {
-
-            ImGui::Checkbox("Auto UV", &e->auto_uv);
+            static bool last_auto_uv = false;
+            if (ImGui::Checkbox("Auto UV", &e->auto_uv)) {
+                if (last_auto_uv != e->auto_uv) {
+                    save_state();
+                    last_auto_uv = e->auto_uv;
+                }
+            }
 
             if (e->auto_uv) {
-                ImGui::InputFloat("Scale X", &e->uv_scale_vec.x, 0.1f, 1.0f, "%.2f");
-                ImGui::InputFloat("Scale Y", &e->uv_scale_vec.y, 0.1f, 1.0f, "%.2f");
-
-                if (e->uv_scale_vec.x < 0.01f) e->uv_scale_vec.x = 0.01f;
-                if (e->uv_scale_vec.y < 0.01f) e->uv_scale_vec.y = 0.01f;
+                static Vector2 last_uv_scale = {0, 0};
+                if (ImGui::InputFloat("Scale X", &e->uv_scale_vec.x, 0.1f, 1.0f, "%.2f")) {
+                    if (last_uv_scale.x != e->uv_scale_vec.x) {
+                        save_state();
+                        last_uv_scale.x = e->uv_scale_vec.x;
+                    }
+                    if (e->uv_scale_vec.x < 0.01f) e->uv_scale_vec.x = 0.01f;
+                }
+                
+                if (ImGui::InputFloat("Scale Y", &e->uv_scale_vec.y, 0.1f, 1.0f, "%.2f")) {
+                    if (last_uv_scale.y != e->uv_scale_vec.y) {
+                        save_state();
+                        last_uv_scale.y = e->uv_scale_vec.y;
+                    }
+                    if (e->uv_scale_vec.y < 0.01f) e->uv_scale_vec.y = 0.01f;
+                }
             }
 
             else {
-                ImGui::InputFloat("Repeat U", &e->texture_repeat_u, 0.1f, 1.0f, "%.2f");
-                ImGui::InputFloat("Repeat V", &e->texture_repeat_v, 0.1f, 1.0f, "%.2f");
+                static float last_repeat_u = 0, last_repeat_v = 0;
+                if (ImGui::InputFloat("Repeat U", &e->texture_repeat_u, 0.1f, 1.0f, "%.2f")) {
+                    if (last_repeat_u != e->texture_repeat_u) {
+                        save_state();
+                        last_repeat_u = e->texture_repeat_u;
+                    }
+                    if (e->texture_repeat_u < 0.01f) e->texture_repeat_u = 0.01f;
+                }
                 
-                if (e->texture_repeat_u < 0.01f) e->texture_repeat_u = 0.01f;
-                if (e->texture_repeat_v < 0.01f) e->texture_repeat_v = 0.01f;
+                if (ImGui::InputFloat("Repeat V", &e->texture_repeat_v, 0.1f, 1.0f, "%.2f")) {
+                    if (last_repeat_v != e->texture_repeat_v) {
+                        save_state();
+                        last_repeat_v = e->texture_repeat_v;
+                    }
+                    if (e->texture_repeat_v < 0.01f) e->texture_repeat_v = 0.01f;
+                }
             }
-
         }
 
-
-
         float color[4] = { e->color.r / 255.f, e->color.g / 255.f, e->color.b / 255.f, e->color.a / 255.f };
-        if (ImGui::ColorEdit4("Color", color)) e->color = {
-            (unsigned char)(color[0]*255),
-            (unsigned char)(color[1]*255),
-            (unsigned char)(color[2]*255),
-            (unsigned char)(color[3]*255)
-        };
+        static Color last_color;
+        if (ImGui::ColorEdit4("Color", color)) {
+            Color new_color = {
+                (unsigned char)(color[0]*255),
+                (unsigned char)(color[1]*255),
+                (unsigned char)(color[2]*255),
+                (unsigned char)(color[3]*255)
+            };
+            if (last_color.r != new_color.r || last_color.g != new_color.g || 
+                last_color.b != new_color.b || last_color.a != new_color.a) {
+                save_state();
+                last_color = new_color;
+                e->color = new_color;
+            }
+        }
 
         float outline[4] = { e->outline_color.r / 255.f, e->outline_color.g / 255.f, e->outline_color.b / 255.f, e->outline_color.a / 255.f };
-        if (ImGui::ColorEdit4("Outline", outline)) e->outline_color = {
-            (unsigned char)(outline[0]*255),
-            (unsigned char)(outline[1]*255),
-            (unsigned char)(outline[2]*255),
-            (unsigned char)(outline[3]*255)
-        }; 
+        static Color last_outline;
+        if (ImGui::ColorEdit4("Outline", outline)) {
+            Color new_outline = {
+                (unsigned char)(outline[0]*255),
+                (unsigned char)(outline[1]*255),
+                (unsigned char)(outline[2]*255),
+                (unsigned char)(outline[3]*255)
+            };
+            if (last_outline.r != new_outline.r || last_outline.g != new_outline.g ||
+                last_outline.b != new_outline.b || last_outline.a != new_outline.a) {
+                save_state();
+                last_outline = new_outline;
+                e->outline_color = new_outline;
+            }
+        } 
 
         ImGui::Separator();
         ImGui::Text("Lighting");
 
-        ImGui::Checkbox("Has Light", &e->has_light);
+        static bool last_has_light = false;
+        if (ImGui::Checkbox("Has Light", &e->has_light)) {
+            if (last_has_light != e->has_light) {
+                save_state();
+                last_has_light = e->has_light;
+            }
+        }
 
         if (e->has_light)
         {
@@ -367,18 +572,37 @@ void Editor::draw_ui(Shader shader) {
                 e->light.color.a / 255.f
             };
 
+            static Color last_light_color;
             if (ImGui::ColorEdit4("Light Color", light_color))
             {
-                e->light.color = {
+                Color new_light_color = {
                     (unsigned char)(light_color[0]*255),
                     (unsigned char)(light_color[1]*255),
                     (unsigned char)(light_color[2]*255),
                     (unsigned char)(light_color[3]*255)
                 };
+                if (last_light_color.r != new_light_color.r || last_light_color.g != new_light_color.g ||
+                    last_light_color.b != new_light_color.b || last_light_color.a != new_light_color.a) {
+                    save_state();
+                    last_light_color = new_light_color;
+                    e->light.color = new_light_color;
+                }
             }
 
-            ImGui::InputFloat("Intensity", &e->light.intensity, 0.1f, 1.0f, "%.2f");
-            ImGui::InputFloat("Range", &e->light.range, 0.1f, 1.0f, "%.2f");
+            static float last_intensity = 0, last_range = 0;
+            if (ImGui::InputFloat("Intensity", &e->light.intensity, 0.1f, 1.0f, "%.2f")) {
+                if (last_intensity != e->light.intensity) {
+                    save_state();
+                    last_intensity = e->light.intensity;
+                }
+            }
+            
+            if (ImGui::InputFloat("Range", &e->light.range, 0.1f, 1.0f, "%.2f")) {
+                if (last_range != e->light.range) {
+                    save_state();
+                    last_range = e->light.range;
+                }
+            }
 
             if (!e->light_created)
             {
@@ -461,6 +685,8 @@ void Editor::draw_assets_ui() {
 
             if (ImGui::BeginPopupContextItem("AssetContext")) {
                 if (ImGui::MenuItem("Delete")) {
+                    save_state();
+
                     fs::remove(fs::path("assets") / asset_entries[i].filename);
 
                     asset_entries.erase(asset_entries.begin() + i);
@@ -513,7 +739,7 @@ void Editor::draw_assets_ui() {
             float last_x2 = ImGui::GetItemRectMax().x;
             float next_x2 = last_x2 + ImGui::GetStyle().ItemSpacing.x + icon_size;
 
-            if (i + 1 < asset_entries.size() && next_x2 < window_visible_x2)ImGui::SameLine();
+            if (i + 1 < asset_entries.size() && next_x2 < window_visible_x2) ImGui::SameLine();
 
             ImGui::PopID();
         }
@@ -530,20 +756,27 @@ void Editor::draw_assets_ui() {
             rename_target = -2;
         }
 
+        static std::string last_filename;
         if (rename_target == -2 && ImGui::BeginPopupModal("RenameAsset", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             ImGui::InputText("##rename", rename_buf, IM_ARRAYSIZE(rename_buf));
             if (ImGui::Button("OK")) {
-                if (selected_asset_index >= 0 && selected_asset_index < asset_entries.size()) {
-                    fs::path old_path = fs::path("assets") / asset_entries[selected_asset_index].filename;
-                    fs::path new_path = fs::path("assets") / rename_buf;
+                std::string new_filename = rename_buf;
+                if (last_filename != new_filename) {
+                    save_state();
+                    last_filename = new_filename;
+                    
+                    if (selected_asset_index >= 0 && selected_asset_index < asset_entries.size()) {
+                        fs::path old_path = fs::path("assets") / asset_entries[selected_asset_index].filename;
+                        fs::path new_path = fs::path("assets") / rename_buf;
 
-                    if (rename_buf[0] != '\0' && old_path != new_path && fs::exists(old_path)) {
-                        try {
-                            fs::rename(old_path, new_path);
-                            asset_entries[selected_asset_index].filename = rename_buf;
-                        } 
-                        
-                        catch (...) {}
+                        if (rename_buf[0] != '\0' && old_path != new_path && fs::exists(old_path)) {
+                            try {
+                                fs::rename(old_path, new_path);
+                                asset_entries[selected_asset_index].filename = rename_buf;
+                            } 
+                            
+                            catch (...) {}
+                        }
                     }
                 }
 
