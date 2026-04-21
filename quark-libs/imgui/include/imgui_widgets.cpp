@@ -791,9 +791,14 @@ bool ImGui::ButtonEx(const char* label, const ImVec2& size_arg, ImGuiButtonFlags
     const ImVec2 label_size = CalcTextSize(label, NULL, true);
 
     ImVec2 pos = window->DC.CursorPos;
-    if ((flags & ImGuiButtonFlags_AlignTextBaseLine) && style.FramePadding.y < window->DC.CurrLineTextBaseOffset) // Try to vertically align buttons that are smaller/have no padding so that text baseline matches (bit hacky, since it shouldn't be a flag)
+    if ((flags & ImGuiButtonFlags_AlignTextBaseLine) && style.FramePadding.y < window->DC.CurrLineTextBaseOffset)
         pos.y += window->DC.CurrLineTextBaseOffset - style.FramePadding.y;
-    ImVec2 size = CalcItemSize(size_arg, label_size.x + style.FramePadding.x * 2.0f, label_size.y + style.FramePadding.y * 2.0f);
+
+    ImVec2 size = CalcItemSize(
+        size_arg,
+        label_size.x + style.FramePadding.x * 2.0f,
+        label_size.y + style.FramePadding.y * 2.0f
+    );
 
     const ImRect bb(pos, pos + size);
     ItemSize(size, style.FramePadding.y);
@@ -803,18 +808,57 @@ bool ImGui::ButtonEx(const char* label, const ImVec2& size_arg, ImGuiButtonFlags
     bool hovered, held;
     bool pressed = ButtonBehavior(bb, id, &hovered, &held, flags);
 
-    // Render
-    const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
     RenderNavCursor(bb, id);
-    RenderFrame(bb.Min, bb.Max, col, true, style.FrameRounding);
 
-    if (g.LogEnabled)
-        LogSetNextTextDecoration("[", "]");
-    RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, NULL, &label_size, style.ButtonTextAlign, &bb);
+    ImDrawList* draw = window->DrawList;
 
-    // Automatically close popups
-    //if (pressed && !(flags & ImGuiButtonFlags_DontClosePopups) && (window->Flags & ImGuiWindowFlags_Popup))
-    //    CloseCurrentPopup();
+    ImU32 col_top, col_bottom;
+
+    ImU32 border_top    = IM_COL32(114, 119, 126, 255); // #72777e
+    ImU32 border_left   = IM_COL32(102, 107, 114, 255); // #666b72
+    ImU32 border_right  = IM_COL32(57, 61, 67, 255);    // #393d43
+    ImU32 border_bottom = IM_COL32(49, 53, 59, 255);    // #31353b
+
+    ImU32 text_col = IM_COL32(221, 225, 228, 255); // #dde1e4
+
+    if (held && hovered) // PRESSED
+    {
+        col_top    = IM_COL32(63, 67, 72, 255);   // #3f4348
+        col_bottom = IM_COL32(54, 58, 63, 255);   // #363a3f
+
+        border_right  = IM_COL32(82, 58, 28, 255);  // #523a1c
+        border_bottom = IM_COL32(122, 83, 34, 255); // #7a5322
+
+        text_col = IM_COL32(240, 197, 138, 255); // #f0c58a
+    }
+    else if (hovered) // HOVER
+    {
+        col_top    = IM_COL32(107, 113, 120, 255); // #6b7178
+        col_bottom = IM_COL32(76, 81, 88, 255);    // #4c5158
+    }
+    else // NORMAL
+    {
+        col_top    = IM_COL32(96, 101, 107, 255); // #60656b
+        col_bottom = IM_COL32(68, 73, 79, 255);   // #44494f
+    }
+
+    draw->AddRectFilledMultiColor(
+        bb.Min, bb.Max,
+        col_top, col_top,
+        col_bottom, col_bottom
+    );
+
+    draw->AddLine(bb.Min, ImVec2(bb.Max.x, bb.Min.y), border_top);                         // top
+    draw->AddLine(bb.Min, ImVec2(bb.Min.x, bb.Max.y), border_left);                        // left
+    draw->AddLine(ImVec2(bb.Max.x - 1, bb.Min.y), ImVec2(bb.Max.x - 1, bb.Max.y), border_right); // right
+    draw->AddLine(ImVec2(bb.Min.x, bb.Max.y - 1), ImVec2(bb.Max.x, bb.Max.y - 1), border_bottom); // bottom
+
+    ImVec2 text_pos = ImVec2(
+        bb.Min.x + (size.x - label_size.x) * style.ButtonTextAlign.x,
+        bb.Min.y + (size.y - label_size.y) * style.ButtonTextAlign.y
+    );
+
+    draw->AddText(text_pos, text_col, label);
 
     IMGUI_TEST_ENGINE_ITEM_INFO(id, label, g.LastItemData.StatusFlags);
     return pressed;
@@ -1245,65 +1289,67 @@ bool ImGui::Checkbox(const char* label, bool* v)
     const ImGuiID id = window->GetID(label);
     const ImVec2 label_size = CalcTextSize(label, NULL, true);
 
-    const float square_sz = GetFrameHeight();
+    const float square_sz = 16.0f;
     const ImVec2 pos = window->DC.CursorPos;
-    const ImRect total_bb(pos, pos + ImVec2(square_sz + (label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f), label_size.y + style.FramePadding.y * 2.0f));
-    ItemSize(total_bb, style.FramePadding.y);
-    const bool is_visible = ItemAdd(total_bb, id);
-    const bool is_multi_select = (g.LastItemData.ItemFlags & ImGuiItemFlags_IsMultiSelect) != 0;
-    if (!is_visible)
-        if (!is_multi_select || !g.BoxSelectState.UnclipMode || !g.BoxSelectState.UnclipRect.Overlaps(total_bb)) // Extra layer of "no logic clip" for box-select support
-        {
-            IMGUI_TEST_ENGINE_ITEM_INFO(id, label, g.LastItemData.StatusFlags | ImGuiItemStatusFlags_Checkable | (*v ? ImGuiItemStatusFlags_Checked : 0));
-            return false;
-        }
 
-    // Range-Selection/Multi-selection support (header)
-    bool checked = *v;
-    if (is_multi_select)
-        MultiSelectItemHeader(id, &checked, NULL);
+    const ImRect total_bb(
+        pos,
+        pos + ImVec2(
+            square_sz + (label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f),
+            ImMax(square_sz, label_size.y)
+        )
+    );
+
+    ItemSize(total_bb, style.FramePadding.y);
+    if (!ItemAdd(total_bb, id))
+        return false;
 
     bool hovered, held;
     bool pressed = ButtonBehavior(total_bb, id, &hovered, &held);
 
-    // Range-Selection/Multi-selection support (footer)
-    if (is_multi_select)
-        MultiSelectItemFooter(id, &checked, &pressed);
-    else if (pressed)
-        checked = !checked;
-
-    if (*v != checked)
+    if (pressed)
     {
-        *v = checked;
-        pressed = true; // return value
+        *v = !(*v);
         MarkItemEdited(id);
     }
 
     const ImRect check_bb(pos, pos + ImVec2(square_sz, square_sz));
-    const bool mixed_value = (g.LastItemData.ItemFlags & ImGuiItemFlags_MixedValue) != 0;
-    if (is_visible)
+
+    ImDrawList* draw = window->DrawList;
+
+    ImU32 bg        = IM_COL32(47, 51, 55, 255);   // #2f3337
+    ImU32 border    = IM_COL32(93, 98, 104, 255);  // #5d6268
+    ImU32 check_bg  = IM_COL32(200, 132, 45, 255); // #c8842d
+    ImU32 check_br  = IM_COL32(166, 111, 39, 255); // #a66f27
+    ImU32 text_col  = IM_COL32(205, 209, 213, 255);// #cdd1d5
+
+    if (hovered)
+        bg = IM_COL32(59, 64, 69, 255);
+
+    draw->AddRectFilled(check_bb.Min, check_bb.Max, bg);
+    draw->AddRect(check_bb.Min, check_bb.Max, border);
+
+    if (*v)
     {
-        RenderNavCursor(total_bb, id);
-        RenderFrame(check_bb.Min, check_bb.Max, GetColorU32((held && hovered) ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg), true, style.FrameRounding);
-        ImU32 check_col = GetColorU32(ImGuiCol_CheckMark);
-        if (mixed_value)
-        {
-            // Undocumented tristate/mixed/indeterminate checkbox (#2644)
-            // This may seem awkwardly designed because the aim is to make ImGuiItemFlags_MixedValue supported by all widgets (not just checkbox)
-            ImVec2 pad(ImMax(1.0f, IM_TRUNC(square_sz / 3.6f)), ImMax(1.0f, IM_TRUNC(square_sz / 3.6f)));
-            window->DrawList->AddRectFilled(check_bb.Min + pad, check_bb.Max - pad, check_col, style.FrameRounding);
-        }
-        else if (*v)
-        {
-            const float pad = ImMax(1.0f, IM_TRUNC(square_sz / 6.0f));
-            RenderCheckMark(window->DrawList, check_bb.Min + ImVec2(pad, pad), check_col, square_sz - pad * 2.0f);
-        }
+        draw->AddRectFilled(
+            check_bb.Min + ImVec2(2, 2),
+            check_bb.Max - ImVec2(2, 2),
+            check_bg
+        );
+
+        draw->AddRect(
+            check_bb.Min + ImVec2(2, 2),
+            check_bb.Max - ImVec2(2, 2),
+            check_br
+        );
     }
-    const ImVec2 label_pos = ImVec2(check_bb.Max.x + style.ItemInnerSpacing.x, check_bb.Min.y + style.FramePadding.y);
-    if (g.LogEnabled)
-        LogRenderedText(&label_pos, mixed_value ? "[~]" : *v ? "[x]" : "[ ]");
-    if (is_visible && label_size.x > 0.0f)
-        RenderText(label_pos, label);
+
+    ImVec2 label_pos = ImVec2(
+        check_bb.Max.x + style.ItemInnerSpacing.x,
+        check_bb.Min.y + (square_sz - label_size.y) * 0.5f
+    );
+
+    draw->AddText(label_pos, text_col, label);
 
     IMGUI_TEST_ENGINE_ITEM_INFO(id, label, g.LastItemData.StatusFlags | ImGuiItemStatusFlags_Checkable | (*v ? ImGuiItemStatusFlags_Checked : 0));
     return pressed;
@@ -2159,49 +2205,147 @@ static const char* Items_SingleStringGetter(void* data, int idx)
 }
 
 // Old API, prefer using BeginCombo() nowadays if you can.
-bool ImGui::Combo(const char* label, int* current_item, const char* (*getter)(void* user_data, int idx), void* user_data, int items_count, int popup_max_height_in_items)
+bool ImGui::Combo(const char* label, int* current_item,
+    const char* (*getter)(void*, int), void* user_data,
+    int items_count, int popup_max_height_in_items)
 {
     ImGuiContext& g = *GImGui;
-
-    // Call the getter to obtain the preview string which is a parameter to BeginCombo()
-    const char* preview_value = NULL;
-    if (*current_item >= 0 && *current_item < items_count)
-        preview_value = getter(user_data, *current_item);
-
-    // The old Combo() API exposed "popup_max_height_in_items". The new more general BeginCombo() API doesn't have/need it, but we emulate it here.
-    if (popup_max_height_in_items != -1 && !(g.NextWindowData.HasFlags & ImGuiNextWindowDataFlags_HasSizeConstraint))
-        SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX, CalcMaxPopupHeightFromItemCount(popup_max_height_in_items)));
-
-    if (!BeginCombo(label, preview_value, ImGuiComboFlags_None))
+    ImGuiWindow* window = GetCurrentWindow();
+    if (window->SkipItems)
         return false;
 
-    // Display items
-    bool value_changed = false;
-    ImGuiListClipper clipper;
-    clipper.Begin(items_count);
-    clipper.IncludeItemByIndex(*current_item);
-    while (clipper.Step())
-        for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
-        {
-            const char* item_text = getter(user_data, i);
-            if (item_text == NULL)
-                item_text = "*Unknown item*";
+    const ImGuiStyle& style = g.Style;
+    const ImGuiID id = window->GetID(label);
 
-            PushID(i);
-            const bool item_selected = (i == *current_item);
-            if (Selectable(item_text, item_selected) && *current_item != i)
+    const float height = GetFrameHeight();
+    const ImVec2 pos = window->DC.CursorPos;
+    const ImVec2 size = ImVec2(200, height);
+
+    const ImRect bb(pos, pos + size);
+    ItemSize(bb, style.FramePadding.y);
+
+    if (!ItemAdd(bb, id))
+        return false;
+
+    bool hovered, held;
+    bool pressed = ButtonBehavior(bb, id, &hovered, &held);
+
+    const char* preview =
+        (*current_item >= 0 && *current_item < items_count)
+        ? getter(user_data, *current_item)
+        : "";
+
+    ImDrawList* draw = window->DrawList;
+
+    ImU32 top    = IM_COL32(96, 101, 107, 255); // #60656b
+    ImU32 bottom = IM_COL32(68, 73, 79, 255);   // #44494f
+
+    if (hovered)
+    {
+        top    = IM_COL32(107, 113, 120, 255);
+        bottom = IM_COL32(76, 81, 88, 255);
+    }
+
+    draw->AddRectFilledMultiColor(bb.Min, bb.Max, top, top, bottom, bottom);
+    draw->AddRect(bb.Min, bb.Max, IM_COL32(72,77,82,255));
+
+    // arrow area
+    float arrow_w = 18.0f;
+    ImRect arrow_bb(ImVec2(bb.Max.x - arrow_w, bb.Min.y), bb.Max);
+
+    draw->AddRectFilled(arrow_bb.Min, arrow_bb.Max, IM_COL32(57,61,66,255));
+    draw->AddLine(arrow_bb.Min, ImVec2(arrow_bb.Min.x, arrow_bb.Max.y), IM_COL32(67,72,77,255));
+
+    ImVec2 center = (arrow_bb.Min + arrow_bb.Max) * 0.5f;
+    draw->AddTriangleFilled(
+        ImVec2(center.x - 4, center.y - 2),
+        ImVec2(center.x + 4, center.y - 2),
+        ImVec2(center.x, center.y + 3),
+        IM_COL32(220,224,228,255)
+    );
+
+    if (preview)
+    {
+        draw->AddText(
+            ImVec2(bb.Min.x + 6, bb.Min.y + (height - CalcTextSize(preview).y) * 0.5f),
+            IM_COL32(205,208,212,255),
+            preview
+        );
+    }
+
+    if (pressed)
+        OpenPopupEx(id);
+
+    bool value_changed = false;
+
+    float item_h = GetFrameHeight();
+    float max_h = item_h * (float)popup_max_height_in_items;
+
+    if (popup_max_height_in_items <= 0)
+        max_h = item_h * 8.0f;
+
+    SetNextWindowSizeConstraints(
+        ImVec2(bb.GetWidth(), 0),
+        ImVec2(bb.GetWidth(), max_h)
+    );
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2, 2));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+
+    ImGui::PushStyleColor(ImGuiCol_PopupBg, IM_COL32(37, 40, 43, 255));
+    ImGui::PushStyleColor(ImGuiCol_Border, IM_COL32(72, 77, 82, 255));
+    ImGui::PushStyleColor(ImGuiCol_Header, IM_COL32(200,132,45,255));
+    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(200,132,45,255));
+    ImGui::PushStyleColor(ImGuiCol_HeaderActive, IM_COL32(166,111,39,255));
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(220,224,228,255));
+
+    ImGui::SetNextWindowPos(
+        ImVec2(bb.Min.x, bb.Max.y),
+        ImGuiCond_Always
+    );
+
+    if (BeginPopupEx(
+            id,
+            ImGuiWindowFlags_NoMove |
+            ImGuiWindowFlags_NoResize |
+            ImGuiWindowFlags_AlwaysAutoResize |
+            ImGuiWindowFlags_NoTitleBar |
+            ImGuiWindowFlags_NoSavedSettings
+        ))
+    {
+        ImGuiListClipper clipper;
+        clipper.Begin(items_count);
+
+        while (clipper.Step())
+        {
+            for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
             {
-                value_changed = true;
-                *current_item = i;
+                const char* item = getter(user_data, i);
+                if (!item)
+                    item = "*Unknown*";
+
+                bool selected = (i == *current_item);
+
+                PushID(i);
+
+                if (Selectable(item, selected, 0, ImVec2(bb.GetWidth(), 0)))
+                {
+                    *current_item = i;
+                    value_changed = true;
+                }
+
+                PopID();
             }
-            if (item_selected)
-                SetItemDefaultFocus();
-            PopID();
         }
 
-    EndCombo();
+        EndPopup();
+    }
+
+    ImGui::PopStyleColor(6);
+    ImGui::PopStyleVar(2);
+
     if (value_changed)
-        MarkItemEdited(g.LastItemData.ID);
+        MarkItemEdited(id);
 
     return value_changed;
 }
