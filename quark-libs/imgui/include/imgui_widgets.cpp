@@ -826,10 +826,10 @@ bool ImGui::ButtonEx(const char* label, const ImVec2& size_arg, ImGuiButtonFlags
         col_top    = IM_COL32(63, 67, 72, 255);   // #3f4348
         col_bottom = IM_COL32(54, 58, 63, 255);   // #363a3f
 
-        border_right  = IM_COL32(82, 58, 28, 255);  // #523a1c
-        border_bottom = IM_COL32(122, 83, 34, 255); // #7a5322
+        border_right  = IM_COL32(0, 49, 105, 255);  // #003169ff
+        border_bottom = IM_COL32(0, 99, 186, 255); // #0063baff
 
-        text_col = IM_COL32(240, 197, 138, 255); // #f0c58a
+        text_col = IM_COL32(0, 208, 255, 255); // #00d0ffff
     }
     else if (hovered) // HOVER
     {
@@ -1319,8 +1319,8 @@ bool ImGui::Checkbox(const char* label, bool* v)
 
     ImU32 bg        = IM_COL32(47, 51, 55, 255);   // #2f3337
     ImU32 border    = IM_COL32(93, 98, 104, 255);  // #5d6268
-    ImU32 check_bg  = IM_COL32(200, 132, 45, 255); // #c8842d
-    ImU32 check_br  = IM_COL32(166, 111, 39, 255); // #a66f27
+    ImU32 check_bg  = IM_COL32(0, 147, 225, 255); // #0093e1ff
+    ImU32 check_br  = IM_COL32(0, 99, 186, 255); // #0063baff
     ImU32 text_col  = IM_COL32(205, 209, 213, 255);// #cdd1d5
 
     if (hovered)
@@ -2242,8 +2242,8 @@ bool ImGui::Combo(const char* label, int* current_item,
 
     if (hovered)
     {
-        top    = IM_COL32(107, 113, 120, 255);
-        bottom = IM_COL32(76, 81, 88, 255);
+        top    = IM_COL32(107, 113, 120, 255); // #6B7178FF
+        bottom = IM_COL32(76, 81, 88, 255); // #4C5158FF
     }
 
     draw->AddRectFilledMultiColor(bb.Min, bb.Max, top, top, bottom, bottom);
@@ -2294,9 +2294,9 @@ bool ImGui::Combo(const char* label, int* current_item,
 
     ImGui::PushStyleColor(ImGuiCol_PopupBg, IM_COL32(37, 40, 43, 255));
     ImGui::PushStyleColor(ImGuiCol_Border, IM_COL32(72, 77, 82, 255));
-    ImGui::PushStyleColor(ImGuiCol_Header, IM_COL32(200,132,45,255));
-    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(200,132,45,255));
-    ImGui::PushStyleColor(ImGuiCol_HeaderActive, IM_COL32(166,111,39,255));
+    ImGui::PushStyleColor(ImGuiCol_Header, IM_COL32(44,142,199,255));
+    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(44,111,199,255));
+    ImGui::PushStyleColor(ImGuiCol_HeaderActive, IM_COL32(38,102,166,255));
     ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(220,224,228,255));
 
     ImGui::SetNextWindowPos(
