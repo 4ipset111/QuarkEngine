@@ -133,6 +133,8 @@ void Editor::draw_ui(Shader shader) {
                     ent_copy.light_created = false;
                     ent_copy.light.id = -1;
                     ent_copy.light.light = {0};
+                    ent_copy.light.intensity = ent.light.intensity;
+                    ent_copy.light.range = ent.light.range;
                 }
 
                 scene.entities.push_back(ent_copy);
@@ -228,11 +230,17 @@ void Editor::draw_ui(Shader shader) {
         ImGui::Text("Mesh");
 
 
-        if (e->asset && e->asset->isProcedural)
-            if (ImGui::DragInt("Segments", &e->segments, 1, 3, 125)) {
+        if (e->asset && e->asset->isProcedural) {
+            int max_seg = 125;
+            if (e->type == SPHERE || e->type == HEMISPHERE) max_seg = 100;
+
+            if (ImGui::DragInt("Segments", &e->segments, 1, 3, max_seg)) {
                 update_model(e);
                 store_uv(e);
+                e->shader_assigned = false;
             }
+        }
+        
 
         static int current_model_index = 0;
         std::vector<const char*> model_names;
@@ -251,6 +259,8 @@ void Editor::draw_ui(Shader shader) {
                 UnloadModel(e->model);
                 e->model = {0};
             }
+
+            e->shader_assigned = false;
 
             if (e->asset->isProcedural) { 
                 e->segments = 16; 

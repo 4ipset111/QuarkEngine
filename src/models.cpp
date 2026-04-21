@@ -58,8 +58,13 @@ void load_models() {
 void update_model(Entity* e) {
     if (!e || !e->asset || !e->asset->isProcedural || !e->asset->generator) return;
     if (e->model.meshCount > 0) UnloadModel(e->model);
-    if (e->segments < 3) e->segments = 3;
-    if (e->segments > 125) e->segments = 125;
+
+    int max_seg = 125;
+    if (e->type == SPHERE || e->type == HEMISPHERE) max_seg = 100;
+
+    if (e->segments < 3)        e->segments = 3;
+    if (e->segments > max_seg)  e->segments = max_seg;
+
     e->model = e->asset->generator(e->segments);
 }
 
