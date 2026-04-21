@@ -121,7 +121,7 @@ int main() {
 
     int emission_color_loc = GetShaderLocation(shader, "emissionColor");
     int emission_power_loc = GetShaderLocation(shader, "emissionPower");
-
+    
     load_models();
     load_textures();
 

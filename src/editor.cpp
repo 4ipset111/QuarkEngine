@@ -92,14 +92,16 @@ void Editor::draw_ui(Shader shader) {
     for (int i = 0; i < scene.entities.size(); i++) {
         Entity& ent = scene.entities[i];
 
-        ImGui::PushID(ent.id);
+        ImGui::PushID(i);
 
         bool selected = (scene.selected == i);
         if (ImGui::Selectable(ent.name.c_str(), selected))
             scene.selected = i;
 
-        if (ImGui::BeginPopupContextItem("context", 1)) {
+        if (ImGui::BeginPopupContextItem(TextFormat("context_%d", ent.id))) {
             if (ImGui::MenuItem("Delete")) {
+                 Entity& ent = scene.entities[i];
+
                 scene.entities.erase(scene.entities.begin() + i);
 
                 if (scene.selected == i) scene.selected = -1;
@@ -332,7 +334,6 @@ void Editor::draw_ui(Shader shader) {
         ImGui::Text("Lighting");
         
         ImGui::Checkbox("Has Light", &e->has_light);
-
         if (e->has_light)
         {
             float light_color[4] = { e->light.color.r / 255.f, e->light.color.g / 255.f, e->light.color.b / 255.f, e->light.color.a / 255.f };
@@ -471,7 +472,7 @@ void Editor::draw_assets_ui() {
             ImGui::SetCursorScreenPos(ImVec2(pos.x, pos.y + icon_size));
             std::string label = asset_entries[i].filename;
 
-            if (label.size() > 12) label = label.substr(0, 9) + "...";
+            if (label.size() > 10) label = label.substr(0, 8) + "...";
 
             ImGui::TextWrapped("%s", label.c_str());
             ImGui::EndGroup();
