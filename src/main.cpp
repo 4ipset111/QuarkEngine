@@ -109,7 +109,7 @@ int main() {
     
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->Clear();
-    io.Fonts->AddFontFromFileTTF("assets/Roboto-Regular.ttf", 16.0f);
+    io.Fonts->AddFontFromFileTTF("assets/Segoe UI.ttf", 20.0f);
     io.Fonts->Build();
 
     ApplyCustomImGuiTheme();
@@ -151,7 +151,7 @@ int main() {
     }
 
     while (!WindowShouldClose()) {
-        SetWindowTitle(TextFormat("Quark Engine / FPS: %d", GetFPS()));
+        SetWindowTitle(TextFormat("Quark Engine | FPS: %d", GetFPS()));
 
         BeginDrawing();
         ClearBackground(DARKGRAY);
