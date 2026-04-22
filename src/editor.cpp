@@ -5,6 +5,7 @@
 #include "headers/lighting.h"
 #include "headers/entity.h"
 #include "headers/ImGuizmo.h"
+#include "headers/project.h"
 
 namespace fs = std::filesystem;
 
@@ -134,6 +135,8 @@ void Editor::handle_input() {
         redo_key_was_pressed = false;
         redo_hold_start = 0;
     }
+
+    if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_S)) project_save(project_path, scene);
 }
 
 void Editor::draw_gizmo(Camera3D camera) {
@@ -181,6 +184,17 @@ void Editor::draw_gizmo(Camera3D camera) {
 }
 
 void Editor::draw_ui(Shader shader) {
+    ImGui::SetNextWindowSize(ImVec2(120, 35), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(160, 5), ImGuiCond_Always);
+    ImGui::Begin(
+        "##toolbar", nullptr, 
+        ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+        ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar
+    );
+
+    if (ImGui::Button("Save  Ctrl+S")) project_save(project_path, scene);
+    ImGui::End();
+
     ImGui::SetNextWindowSize(ImVec2(150, 540), ImGuiCond_Once);
     ImGui::SetNextWindowPos(ImVec2(5, 5), ImGuiCond_Once);
     ImGui::Begin("Hierarchy", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
@@ -261,12 +275,12 @@ void Editor::draw_ui(Shader shader) {
                     e.segments = 16;
                     e.name = scene.make_default_name_for(e);
 
-                    if (a.isProcedural) {
+                    if (a.is_procedural) {
                         e.model = a.generator(e.segments);
                         store_uv(&e);
                     }
 
-                    else e.model = a.loadedModel;
+                    else e.model = a.loaded_model;
                     e.texture = {0};
                     scene.entities.push_back(e);
                 }
@@ -363,7 +377,7 @@ void Editor::draw_ui(Shader shader) {
         ImGui::Separator();
         ImGui::Text("Mesh");
 
-        if (e->asset && e->asset->isProcedural) {
+        if (e->asset && e->asset->is_procedural) {
             int max_seg = 125;
             if (e->type == SPHERE || e->type == HEMISPHERE) max_seg = 100;
 
@@ -406,14 +420,14 @@ void Editor::draw_ui(Shader shader) {
 
                 e->shader_assigned = false;
 
-                if (e->asset->isProcedural) { 
+                if (e->asset->is_procedural) { 
                     e->segments = 16; 
                     update_model(e); 
                     store_uv(e);
                 } 
                 
                 else {
-                    e->model = e->asset->loadedModel;
+                    e->model = e->asset->loaded_model;
                     store_uv(e);
                 }
             }
