@@ -184,19 +184,29 @@ void Editor::draw_gizmo(Camera3D camera) {
 }
 
 void Editor::draw_ui(Shader shader) {
-    ImGui::SetNextWindowSize(ImVec2(120, 35), ImGuiCond_Always);
-    ImGui::SetNextWindowPos(ImVec2(160, 5), ImGuiCond_Always);
-    ImGui::Begin(
-        "##toolbar", nullptr, 
-        ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-        ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar
-    );
+    if (ImGui::BeginMainMenuBar()) {
+        if (ImGui::BeginMenu("File")) {
 
-    if (ImGui::Button("Save  Ctrl+S")) project_save(project_path, scene);
-    ImGui::End();
+            if (ImGui::MenuItem("Save", "Ctrl+S")) {
+                project_save(project_path, scene);
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Exit")) {
+                CloseWindow();
+            }
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMainMenuBar();
+    }
+
+    float menu_bar_height = ImGui::GetFrameHeight();
 
     ImGui::SetNextWindowSize(ImVec2(150, 540), ImGuiCond_Once);
-    ImGui::SetNextWindowPos(ImVec2(5, 5), ImGuiCond_Once);
+    ImGui::SetNextWindowPos(ImVec2(5, 5 + menu_bar_height), ImGuiCond_Once);
     ImGui::Begin("Hierarchy", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 
     for (int i = 0; i < scene.entities.size(); i++) {
@@ -313,7 +323,7 @@ void Editor::draw_ui(Shader shader) {
     }
 
     ImGui::SetNextWindowSize(ImVec2(225, 540), ImGuiCond_Once);
-    ImGui::SetNextWindowPos(ImVec2(1050, 5), ImGuiCond_Once);
+    ImGui::SetNextWindowPos(ImVec2(1050, 5 + menu_bar_height), ImGuiCond_Once);
 
     ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
     ImGui::Text("Mode"); ImGui::SameLine();
