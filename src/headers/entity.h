@@ -24,9 +24,9 @@ struct ModelAsset {
     std::string filepath;
     
     ObjectType type;
-    bool isProcedural;
+    bool is_procedural;
     std::function<Model(int)> generator;
-    Model loadedModel = {0};
+    Model loaded_model = {0};
 };
 
 struct Entity {

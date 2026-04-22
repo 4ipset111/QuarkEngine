@@ -7,6 +7,7 @@ in vec3 fragNormal;
 
 uniform sampler2D texture0;
 uniform vec4 colDiffuse;
+uniform int useTexture;
 
 out vec4 finalColor;
 
@@ -34,7 +35,11 @@ uniform float emissionPower;
 
 void main()
 {
-    vec4 texelColor = texture(texture0, fragTexCoord);
+    vec4 texelColor = vec4(1.0);
+
+    if (useTexture == 1)
+        texelColor = texture(texture0, fragTexCoord);
+        
     vec3 normal = normalize(fragNormal);
     vec3 viewD = normalize(viewPos - fragPosition);
     vec3 lightAccum = vec3(0.0);

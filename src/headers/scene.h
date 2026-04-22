@@ -7,7 +7,6 @@
 
 struct Scene {
     std::vector<Entity> entities;
-    std::vector<Lighting> lightings;
 
     int selected = -1;
 

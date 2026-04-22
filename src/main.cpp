@@ -6,6 +6,8 @@
 #include "headers/lighting.h"
 #include "headers/editor.h"
 #include "headers/camera.h"
+#include "headers/project.h"
+#include <iostream>
 
 static Entity make_entity_from_asset(Scene& scene, ModelAsset* asset) {
     Entity entity;
@@ -15,11 +17,11 @@ static Entity make_entity_from_asset(Scene& scene, ModelAsset* asset) {
     entity.segments = 16;
     entity.name = scene.make_default_name_for(entity);
 
-    if (asset->isProcedural) {
+    if (asset->is_procedural) {
         entity.model = asset->generator(entity.segments);
         store_uv(&entity);
     } else {
-        entity.model = asset->loadedModel;
+        entity.model = asset->loaded_model;
     }
 
     entity.texture = {0};
@@ -99,7 +101,10 @@ void ApplyCustomImGuiTheme()
     colors[ImGuiCol_ResizeGripActive]   = ImVec4(0.0f, 0.6f, 1.0f, 1.0f); // #0099ffff
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+    std::string project_path = "TestProject";
+    if (argc > 1) project_path = argv[1];
+
     if (!std::filesystem::exists("assets")) std::filesystem::create_directory("assets");
 
     InitWindow(1280, 720, "Quark Engine");
@@ -109,7 +114,7 @@ int main() {
     
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->Clear();
-    io.Fonts->AddFontFromFileTTF("assets/Segoe UI.ttf", 20.0f);
+    io.Fonts->AddFontFromFileTTF("assets/Rubik-Regular.ttf", 18.0f);
     io.Fonts->Build();
 
     ApplyCustomImGuiTheme();
@@ -118,37 +123,28 @@ int main() {
     Editor editor;
     FlyCamera camera;
 
+    editor.project_path = project_path;
     Shader shader = LoadShader("assets/lighting.vs", "assets/lighting.fs");
-
-    int ambient_loc = GetShaderLocation(shader, "ambient");
-    float ambient[4] = { 0.15f, 0.15f, 0.15f, 1.0f };
-    SetShaderValue(shader, ambient_loc, ambient, SHADER_UNIFORM_VEC4);
 
     int emission_color_loc = GetShaderLocation(shader, "emissionColor");
     int emission_power_loc = GetShaderLocation(shader, "emissionPower");
     
     load_models();
+    TraceLog(LOG_INFO, "Models loaded");
     load_textures();
+    TraceLog(LOG_INFO, "Textures loaded");
 
-    for (auto& asset : assets) {
-        if (asset.type != SPHERE) continue;
+    TraceLog(LOG_INFO, "Project path: %s", project_path.c_str());
+    TraceLog(LOG_INFO, "Scene exists: %d", (int)std::filesystem::exists(project_path + "/scene.json"));
 
-        Entity light_entity = make_entity_from_asset(editor.scene, &asset);
-        light_entity.has_light = true;
-        light_entity.name = editor.scene.make_default_name_for(light_entity);
-        light_entity.position = { 2.0f, 3.0f, 2.0f };
-        light_entity.scale = { 0.2f, 0.2f, 0.2f };
-        light_entity.color = WHITE;
-        light_entity.light = create_lighting(light_entity.position, WHITE);
-        light_entity.light.range = 12.0f;
-        light_entity.light.intensity = 1.5f;
-        light_entity.light.id = allocate_light_id();
-        light_entity.light.light = CreateLight(LIGHT_POINT, light_entity.position, Vector3Zero(), light_entity.light.color, shader);
-        light_entity.light_created = true;
+    if (std::filesystem::exists(project_path + "/scene.json"))
+        project_load(project_path, editor.scene, shader);
+    else
+        project_new(project_path, editor.scene);
 
-        editor.scene.entities.push_back(light_entity);
-        break;
-    }
+    int ambient_loc = GetShaderLocation(shader, "ambient");
+    float ambient[4] = { 0.15f, 0.15f, 0.15f, 1.0f };
+    SetShaderValue(shader, ambient_loc, ambient, SHADER_UNIFORM_VEC4);
 
     while (!WindowShouldClose()) {
         SetWindowTitle(TextFormat("Quark Engine | FPS: %d", GetFPS()));
@@ -167,6 +163,7 @@ int main() {
         DrawGrid(20, 1.0f);
 
         BeginShaderMode(shader);
+        SetShaderValue(shader, ambient_loc, ambient, SHADER_UNIFORM_VEC4);
 
         for (auto& e : editor.scene.entities)
         {
@@ -208,15 +205,15 @@ int main() {
                 SetShaderValue(shader, emission_power_loc, &power, SHADER_UNIFORM_FLOAT);
             }
 
+            int useTexLoc = GetShaderLocation(shader, "useTexture");
+            int use = (e.texture.id != 0) ? 1 : 0;
+            SetShaderValue(shader, useTexLoc, &use, SHADER_UNIFORM_INT);
+
             draw_entity_with_texture(e);
         }
         
         EndShaderMode();
 
-        for (auto& l : editor.scene.lightings)
-        {
-            if (l.enabled) DrawSphere(l.position, 0.2f, l.color);
-        }
 
         EndMode3D();
 
