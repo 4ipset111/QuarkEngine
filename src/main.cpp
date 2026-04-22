@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
     
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->Clear();
-    io.Fonts->AddFontFromFileTTF("assets/Rubik-Regular.ttf", 18.0f);
+    io.Fonts->AddFontFromFileTTF("assets/Rubik-Regular.ttf", 16.0f);
     io.Fonts->Build();
 
     ApplyCustomImGuiTheme();
