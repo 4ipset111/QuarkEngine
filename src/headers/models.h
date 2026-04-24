@@ -9,6 +9,6 @@ extern std::vector<ModelAsset> assets;
 void load_models();
 void update_model(Entity* e);
 void unload_models();
-void load_external_models();
-void refresh_models();
+void load_external_models(std::string project_path);
+void refresh_models(std::string project_path);
 bool is_model_file(const std::filesystem::path& p);

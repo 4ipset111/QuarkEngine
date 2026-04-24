@@ -80,16 +80,17 @@ void Editor::handle_input() {
 
         if (!fs::exists("assets")) fs::create_directories("assets");
 
+        fs::path resource_dir = fs::path(project_path) / "resources";
         for (unsigned int i = 0; i < dropped.count; i++) {
             fs::path src(dropped.paths[i]);
-            fs::path dst = fs::path("assets") / src.filename();
+            fs::path dst = resource_dir / src.filename();
             fs::copy_file(src, dst, fs::copy_options::overwrite_existing);
         }
 
         UnloadDroppedFiles(dropped);
-        refresh_textures(&scene);
-        refresh_assets();
-        refresh_models();
+        refresh_textures(&scene, project_path);
+        refresh_assets(project_path);
+        refresh_models(project_path);
     }
 
     bool ctrl = IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL);
@@ -711,7 +712,7 @@ void Editor::draw_assets_ui() {
                 if (ImGui::MenuItem("Delete")) {
                     save_state();
 
-                    fs::remove(fs::path("assets") / asset_entries[i].filename);
+                    fs::remove(fs::path(project_path) / "resources" / asset_entries[i].filename);
 
                     asset_entries.erase(asset_entries.begin() + i);
 
@@ -790,8 +791,9 @@ void Editor::draw_assets_ui() {
                     last_filename = new_filename;
                     
                     if (selected_asset_index >= 0 && selected_asset_index < asset_entries.size()) {
-                        fs::path old_path = fs::path("assets") / asset_entries[selected_asset_index].filename;
-                        fs::path new_path = fs::path("assets") / rename_buf;
+                        fs::path resource_dir = fs::path(project_path) / "resources";
+                        fs::path old_path = resource_dir / asset_entries[selected_asset_index].filename;
+                        fs::path new_path = resource_dir / rename_buf;
 
                         if (rename_buf[0] != '\0' && old_path != new_path && fs::exists(old_path)) {
                             try {

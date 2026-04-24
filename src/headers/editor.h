@@ -12,7 +12,7 @@ struct SceneState {
 
 struct Editor {
     Scene scene;
-    std::string project_path = "TestProject";
+    std::string project_path = "projects/TestProject";
     int selected_asset_index = -1;
 
     std::stack<SceneState> undo_stack;

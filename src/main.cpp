@@ -102,10 +102,14 @@ void ApplyCustomImGuiTheme()
 }
 
 int main(int argc, char* argv[]) {
-    std::string project_path = "TestProject";
+    if (!std::filesystem::exists("projects")) std::filesystem::create_directory("projects");
+
+    std::string project_path = "projects/TestProject";
     if (argc > 1) project_path = argv[1];
 
     if (!std::filesystem::exists("assets")) std::filesystem::create_directory("assets");
+    std::filesystem::path project_resources = std::filesystem::path(project_path) / "resources";
+    if (!std::filesystem::exists(project_resources)) std::filesystem::create_directories(project_resources);
 
     InitWindow(1280, 720, "Quark Engine");
 
@@ -131,7 +135,7 @@ int main(int argc, char* argv[]) {
     
     load_models();
     TraceLog(LOG_INFO, "Models loaded");
-    load_textures();
+    load_textures(project_path);
     TraceLog(LOG_INFO, "Textures loaded");
 
     TraceLog(LOG_INFO, "Project path: %s", project_path.c_str());

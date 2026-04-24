@@ -113,14 +113,14 @@ bool project_load(const std::string& folder_path, Scene& scene, Shader shader) {
     if (fs::exists(res_path)) {
         for (auto& entry : fs::directory_iterator(res_path)) {
             if (!entry.is_regular_file()) continue;
-            fs::path dst = fs::path("assets") / entry.path().filename();
+            fs::path dst = fs::path(res_path) / entry.path().filename();
             fs::copy_file(entry.path(), dst, fs::copy_options::overwrite_existing);
         }
     }
 
-    refresh_textures(nullptr);
-    refresh_assets();
-    load_external_models();
+    refresh_textures(nullptr, folder_path);
+    refresh_assets(folder_path);
+    load_external_models(folder_path);
     scene.release_resources();
 
     std::ifstream f(json_path);

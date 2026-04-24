@@ -13,14 +13,15 @@ bool is_image_file(const fs::path& p) {
     return ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp" || ext == ".tga";
 }
 
-void load_textures() {
-    if (!fs::exists("assets")) fs::create_directories("assets");
+void load_textures(std::string project_path) {
+    fs::path resource_dir = fs::path(project_path) / "resources";
+    if (!fs::exists(resource_dir)) fs::create_directories(resource_dir);
 
     unload_textures();
     texture_options.clear();
     texture_options.push_back({ "None", {0} });
 
-    for (const auto& entry : fs::directory_iterator("assets")) {
+    for (const auto& entry : fs::directory_iterator(resource_dir)) {
         if (!entry.is_regular_file()) continue;
         if (!is_image_file(entry.path())) continue;
 
@@ -153,8 +154,9 @@ void draw_entity_with_texture(Entity& e) {
     rlPopMatrix();
 }
 
-void refresh_textures(Scene* scene) {
-    if (!fs::exists("assets")) fs::create_directories("assets");
+void refresh_textures(Scene* scene, const std::string& project_path) {
+    fs::path resource_dir = fs::path(project_path) / "resources";
+    if (!fs::exists(resource_dir)) fs::create_directories(resource_dir);
 
     std::unordered_map<std::string, Texture2D> old_by_name;
     for (const auto& opt : texture_options) {
@@ -166,7 +168,7 @@ void refresh_textures(Scene* scene) {
     std::vector<TextureOption> next_options;
     next_options.push_back({ "None", {0} });
 
-    for (auto& entry : fs::directory_iterator("assets")) {
+    for (auto& entry : fs::directory_iterator(resource_dir)) {
         if (!entry.is_regular_file()) continue;
 
         fs::path path = entry.path();
@@ -205,11 +207,12 @@ void refresh_textures(Scene* scene) {
     texture_options = std::move(next_options);
 }
 
-void load_assets() {
+void load_assets(std::string project_path) {
     asset_entries.clear();
-    if (!fs::exists("assets")) fs::create_directories("assets");
+    fs::path resource_dir = fs::path(project_path) / "resources";
+    if (!fs::exists(resource_dir)) fs::create_directories(resource_dir);
 
-    for (auto& entry : fs::directory_iterator("assets")) {
+    for (auto& entry : fs::directory_iterator(resource_dir)) {
         fs::path path = entry.path();
 
         AssetEntry asset_entry;
@@ -222,11 +225,12 @@ void load_assets() {
     }
 }
 
-void refresh_assets() {
+void refresh_assets(std::string project_path) {
     asset_entries.clear();
-    if (!fs::exists("assets")) fs::create_directories("assets");
+    fs::path resource_dir = fs::path(project_path) / "resources";
+    if (!fs::exists(resource_dir)) fs::create_directories(resource_dir);
 
-    for (auto& entry : fs::directory_iterator("assets")) {
+    for (auto& entry : fs::directory_iterator(resource_dir)) {
         AssetEntry a;
         a.filename = entry.path().filename().string();
         a.is_image = is_image_file(entry.path().string());

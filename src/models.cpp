@@ -84,12 +84,13 @@ void unload_models() {
     assets.clear();
 }
 
-void load_external_models() {
+void load_external_models(std::string project_path) {
     namespace fs = std::filesystem;
 
-    if (!fs::exists("assets")) fs::create_directories("assets");
+    fs::path resource_dir = fs::path(project_path) / "resources";
+    if (!fs::exists(resource_dir)) fs::create_directories(resource_dir);
 
-    for (auto& entry : fs::directory_iterator("assets")) {
+    for (auto& entry : fs::directory_iterator(resource_dir)) {
         if (!entry.is_regular_file()) continue;
         if (!is_model_file(entry.path())) continue;
 
@@ -104,7 +105,7 @@ void load_external_models() {
     }
 }
 
-void refresh_models() {
+void refresh_models(std::string project_path) {
     namespace fs = std::filesystem;
 
     std::unordered_map<std::string, Model> old;
@@ -120,7 +121,10 @@ void refresh_models() {
         if (a.is_procedural)
             next.push_back(a);
 
-    for (auto& entry : fs::directory_iterator("assets")) {
+    fs::path resource_dir = fs::path(project_path) / "resources";
+    if (!fs::exists(resource_dir)) fs::create_directories(resource_dir);
+
+    for (auto& entry : fs::directory_iterator(resource_dir)) {
         if (!is_model_file(entry.path())) continue;
 
         std::string name = entry.path().filename().string();
