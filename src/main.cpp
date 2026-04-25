@@ -7,7 +7,10 @@
 #include "headers/editor.h"
 #include "headers/camera.h"
 #include "headers/project.h"
+#include "headers/hub.h"
 #include <iostream>
+
+namespace fs = std::filesystem;
 
 static Entity make_entity_from_asset(Scene& scene, ModelAsset* asset) {
     Entity entity;
@@ -102,20 +105,13 @@ void ApplyCustomImGuiTheme()
 }
 
 int main(int argc, char* argv[]) {
-    if (!std::filesystem::exists("projects")) std::filesystem::create_directory("projects");
-
-    std::string project_path = "projects/TestProject";
-    if (argc > 1) project_path = argv[1];
-
-    if (!std::filesystem::exists("assets")) std::filesystem::create_directory("assets");
-    std::filesystem::path project_resources = std::filesystem::path(project_path) / "resources";
-    if (!std::filesystem::exists(project_resources)) std::filesystem::create_directories(project_resources);
+    fs::create_directories("projects");
+    fs::create_directories("assets");
 
     InitWindow(1280, 720, "Quark Engine");
-
     SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
     rlImGuiSetup(true);
-    
+
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->Clear();
     io.Fonts->AddFontFromFileTTF("assets/Rubik-Regular.ttf", 16.0f);
@@ -123,6 +119,21 @@ int main(int argc, char* argv[]) {
 
     ApplyCustomImGuiTheme();
     SetExitKey(0);
+
+    std::string project_path = "";
+    if (argc > 1)
+        project_path = argv[1];
+
+    else {
+        project_path = run_hub();
+        if (project_path.empty()) {
+            rlImGuiShutdown();
+            CloseWindow();
+            return 0;
+        }
+    }
+
+    fs::create_directories(fs::path(project_path) / "resources");
 
     Editor editor;
     FlyCamera camera;
@@ -132,14 +143,9 @@ int main(int argc, char* argv[]) {
 
     int emission_color_loc = GetShaderLocation(shader, "emissionColor");
     int emission_power_loc = GetShaderLocation(shader, "emissionPower");
-    
-    load_models();
-    TraceLog(LOG_INFO, "Models loaded");
-    load_textures(project_path);
-    TraceLog(LOG_INFO, "Textures loaded");
 
-    TraceLog(LOG_INFO, "Project path: %s", project_path.c_str());
-    TraceLog(LOG_INFO, "Scene exists: %d", (int)std::filesystem::exists(project_path + "/scene.json"));
+    load_models();
+    load_textures(project_path);
 
     if (std::filesystem::exists(project_path + "/scene.json"))
         project_load(project_path, editor.scene, shader);
@@ -151,7 +157,8 @@ int main(int argc, char* argv[]) {
     SetShaderValue(shader, ambient_loc, ambient, SHADER_UNIFORM_VEC4);
 
     while (!WindowShouldClose()) {
-        SetWindowTitle(TextFormat("Quark Engine | FPS: %d", GetFPS()));
+        SetWindowTitle(TextFormat("Quark Engine | %s | FPS: %d",
+            fs::path(project_path).filename().string().c_str(), GetFPS()));
 
         BeginDrawing();
         ClearBackground(DARKGRAY);
@@ -163,49 +170,35 @@ int main(int argc, char* argv[]) {
         editor.handle_input();
 
         BeginMode3D(camera.get_camera());
-
         DrawGrid(20, 1.0f);
-
         BeginShaderMode(shader);
         SetShaderValue(shader, ambient_loc, ambient, SHADER_UNIFORM_VEC4);
 
         for (auto& e : editor.scene.entities)
         {
-            if (!e.shader_assigned)
-            {
+            if (!e.shader_assigned) {
                 for (int i = 0; i < e.model.materialCount; i++)
                     e.model.materials[i].shader = shader;
                 e.shader_assigned = true;
             }
 
-            if (e.has_light && e.light_created)
-            {
-                e.light.position = e.position;
+            if (e.has_light && e.light_created) {
+                e.light.position       = e.position;
                 e.light.light.position = e.position;
-                e.light.light.color = e.light.color;
-                e.light.enabled = true;
+                e.light.light.color    = e.light.color;
+                e.light.enabled        = true;
                 update_lighting(shader, e.light);
             }
 
-            if (e.has_light)
-            {
-                Vector3 emission = {
-                    e.color.r / 255.0f,
-                    e.color.g / 255.0f,
-                    e.color.b / 255.0f
-                };
-
+            if (e.has_light) {
+                Vector3 emission = { e.color.r / 255.0f, e.color.g / 255.0f, e.color.b / 255.0f };
                 float power = 2.0f;
-
                 SetShaderValue(shader, emission_color_loc, &emission, SHADER_UNIFORM_VEC3);
-                SetShaderValue(shader, emission_power_loc, &power, SHADER_UNIFORM_FLOAT);
-            }
-            else
-            {
+                SetShaderValue(shader, emission_power_loc, &power,    SHADER_UNIFORM_FLOAT);
+            } else {
                 Vector3 zero = {0, 0, 0};
                 float power = 0.0f;
-
-                SetShaderValue(shader, emission_color_loc, &zero, SHADER_UNIFORM_VEC3);
+                SetShaderValue(shader, emission_color_loc, &zero,  SHADER_UNIFORM_VEC3);
                 SetShaderValue(shader, emission_power_loc, &power, SHADER_UNIFORM_FLOAT);
             }
 
@@ -215,23 +208,20 @@ int main(int argc, char* argv[]) {
 
             draw_entity_with_texture(e);
         }
-        
+
         EndShaderMode();
-
-
         EndMode3D();
 
         editor.draw_ui(shader);
 
         rlImGuiEnd();
-
         EndDrawing();
     }
 
     editor.scene.release_resources();
     unload_models();
     unload_textures();
-
     rlImGuiShutdown();
     CloseWindow();
+    return 0;
 }

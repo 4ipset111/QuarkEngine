@@ -23,6 +23,7 @@ set(SOURCE_FILES
     src/rlights.cpp
     src/lighting.cpp
     src/project.cpp
+    src/hub.cpp
     quark-libs/imgui/include/imgui.cpp
     quark-libs/imgui/include/imgui_draw.cpp
     quark-libs/imgui/include/imgui_widgets.cpp
