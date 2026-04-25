@@ -44,6 +44,7 @@ struct Entity {
 
     Model model = {0};
     ModelAsset* asset;
+    std::string asset_name;
 
     float texture_repeat_u;
     float texture_repeat_v;

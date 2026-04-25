@@ -80,7 +80,7 @@ void project_save(const std::string& folder_path, const Scene& scene) {
         ej["light_intensity"]  = e.light.intensity;
         ej["light_range"]      = e.light.range;
 
-        ej["asset_name"]       = e.asset ? e.asset->name : "";
+        ej["asset_name"]       = e.asset_name;
 
         j["entities"].push_back(ej);
     }
@@ -92,31 +92,12 @@ void project_save(const std::string& folder_path, const Scene& scene) {
     }
     f << j.dump(4);
     f.close();
-
-    if (fs::exists("assets")) {
-        for (auto& entry : fs::directory_iterator("assets")) {
-            if (!entry.is_regular_file()) continue;
-            fs::path dst = fs::path(folder_path) / "resources" / entry.path().filename();
-            fs::copy_file(entry.path(), dst, fs::copy_options::overwrite_existing);
-        }
-    }
 }
 
 bool project_load(const std::string& folder_path, Scene& scene, Shader shader) {
     TraceLog(LOG_INFO, "project_load called: %s", folder_path.c_str());
     std::string json_path = folder_path + "/scene.json";
     if (!fs::exists(json_path)) return false;
-
-    fs::create_directories("assets");
-    std::string res_path = folder_path + "/resources";
-
-    if (fs::exists(res_path)) {
-        for (auto& entry : fs::directory_iterator(res_path)) {
-            if (!entry.is_regular_file()) continue;
-            fs::path dst = fs::path(res_path) / entry.path().filename();
-            fs::copy_file(entry.path(), dst, fs::copy_options::overwrite_existing);
-        }
-    }
 
     refresh_textures(nullptr, folder_path);
     refresh_assets(folder_path);
@@ -163,6 +144,7 @@ bool project_load(const std::string& folder_path, Scene& scene, Shader shader) {
         e.segments         = ej["segments"].get<int>();
 
         std::string asset_name = ej["asset_name"].get<std::string>();
+        e.asset_name = asset_name;
 
         for (auto& a : assets) {
             if (a.name == asset_name) {

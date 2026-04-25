@@ -222,10 +222,18 @@ void load_assets(std::string project_path) {
         if (asset_entry.is_image) {
             asset_entry.texture = LoadTexture(path.string().c_str());
         }
+
+        asset_entries.push_back(asset_entry);
     }
 }
 
 void refresh_assets(std::string project_path) {
+    for (auto& asset : asset_entries) {
+        if (asset.is_image && asset.texture.id != 0) {
+            UnloadTexture(asset.texture);
+        }
+    }
+
     asset_entries.clear();
     fs::path resource_dir = fs::path(project_path) / "resources";
     if (!fs::exists(resource_dir)) fs::create_directories(resource_dir);

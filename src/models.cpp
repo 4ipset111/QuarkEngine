@@ -1,4 +1,5 @@
 #include "headers/models.h"
+#include "headers/scene.h"
 #include <unordered_set>
 #include <filesystem>
 
@@ -105,7 +106,7 @@ void load_external_models(std::string project_path) {
     }
 }
 
-void refresh_models(std::string project_path) {
+void refresh_models(std::string project_path, Scene& scene) {
     namespace fs = std::filesystem;
 
     std::unordered_map<std::string, Model> old;
@@ -151,4 +152,16 @@ void refresh_models(std::string project_path) {
     }
 
     assets = std::move(next);
+
+    for (auto& entity : scene.entities) {
+        if (!entity.asset_name.empty()) {
+            entity.asset = nullptr;
+            for (auto& a : assets) {
+                if (a.name == entity.asset_name) {
+                    entity.asset = &a;
+                    break;
+                }
+            }
+        }
+    }
 }

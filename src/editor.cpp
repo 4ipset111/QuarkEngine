@@ -78,8 +78,6 @@ void Editor::handle_input() {
         
         FilePathList dropped = LoadDroppedFiles();
 
-        if (!fs::exists("assets")) fs::create_directories("assets");
-
         fs::path resource_dir = fs::path(project_path) / "resources";
         for (unsigned int i = 0; i < dropped.count; i++) {
             fs::path src(dropped.paths[i]);
@@ -90,10 +88,15 @@ void Editor::handle_input() {
         UnloadDroppedFiles(dropped);
         refresh_textures(&scene, project_path);
         refresh_assets(project_path);
-        refresh_models(project_path);
+        refresh_models(project_path, scene);
     }
 
+    ImGuiIO& io = ImGui::GetIO();
     bool ctrl = IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL);
+
+    if (!io.WantCaptureKeyboard && ctrl && IsKeyPressed(KEY_S)) {
+        project_save(project_path, scene);
+    }
 
     static float last_undo_time = 0;
     static float last_redo_time = 0;
@@ -283,6 +286,7 @@ void Editor::draw_ui(Shader shader) {
                     e.id = static_cast<int>(scene.entities.size());
                     e.type = a.type;
                     e.asset = &a;
+                    e.asset_name = a.name;
                     e.segments = 16;
                     e.name = scene.make_default_name_for(e);
 
@@ -412,7 +416,7 @@ void Editor::draw_ui(Shader shader) {
         for (int i = 0; i < static_cast<int>(assets.size()); i++) {
             model_names.push_back(assets[i].name.c_str());
             model_names[i] = assets[i].name.c_str();
-            if (e->asset && e->asset->name == assets[i].name) current_model_index = i;
+            if (e->asset_name == assets[i].name) current_model_index = i;
         }
 
         static int last_model_index = -1;
@@ -422,6 +426,7 @@ void Editor::draw_ui(Shader shader) {
                 last_model_index = current_model_index;
                 
                 e->asset = &assets[current_model_index];
+                e->asset_name = e->asset->name;
                 e->type  = e->asset->type;
 
                 if (e->model.meshCount > 0) {

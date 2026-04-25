@@ -1,0 +1,140 @@
+{
+    "entities": [
+        {
+            "asset_name": "Cube",
+            "auto_uv": true,
+            "color": "#FFFFFFFF",
+            "has_light": false,
+            "light_color": "#FFFFFFFF",
+            "light_intensity": 1.0,
+            "light_range": 5.0,
+            "name": "Cube",
+            "outline_color": "#C8C8C8FF",
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                -0.0,
+                0.0
+            ],
+            "scale": [
+                16.22663688659668,
+                1.0,
+                18.216548919677734
+            ],
+            "segments": 16,
+            "texture": "brick.png",
+            "texture_repeat_u": 1.0,
+            "texture_repeat_v": 1.0,
+            "texture_stretch": false,
+            "type": 0,
+            "uv_scale_x": 1.0,
+            "uv_scale_y": 1.0
+        },
+        {
+            "asset_name": "Sphere",
+            "auto_uv": false,
+            "color": "#FFFFFFFF",
+            "has_light": true,
+            "light_color": "#FFFFFFFF",
+            "light_intensity": 1.0,
+            "light_range": 5.0,
+            "name": "Sphere",
+            "outline_color": "#C8C8C8FF",
+            "position": [
+                0.0,
+                1.514218807220459,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                -0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "segments": 16,
+            "texture": "None",
+            "texture_repeat_u": 1.0,
+            "texture_repeat_v": 1.0,
+            "texture_stretch": true,
+            "type": 1,
+            "uv_scale_x": 1.0,
+            "uv_scale_y": 1.0
+        },
+        {
+            "asset_name": "Cube",
+            "auto_uv": false,
+            "color": "#FFFFFFFF",
+            "has_light": false,
+            "light_color": "#FFFFFFFF",
+            "light_intensity": 1.0,
+            "light_range": 5.0,
+            "name": "Cube (1)",
+            "outline_color": "#C8C8C8FF",
+            "position": [
+                1.0035851001739502,
+                1.1519627571105957,
+                -1.9297345876693726
+            ],
+            "rotation": [
+                0.0,
+                -0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "segments": 16,
+            "texture": "None",
+            "texture_repeat_u": 1.0,
+            "texture_repeat_v": 1.0,
+            "texture_stretch": true,
+            "type": 0,
+            "uv_scale_x": 1.0,
+            "uv_scale_y": 1.0
+        },
+        {
+            "asset_name": "castle.obj",
+            "auto_uv": false,
+            "color": "#FFFFFFFF",
+            "has_light": false,
+            "light_color": "#FFFFFFFF",
+            "light_intensity": 1.0,
+            "light_range": 5.0,
+            "name": "Cube (2)",
+            "outline_color": "#C8C8C8FF",
+            "position": [
+                -3.4500088691711426,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                -0.0,
+                0.0
+            ],
+            "scale": [
+                0.11000001430511475,
+                0.11000001430511475,
+                0.11000001430511475
+            ],
+            "segments": 16,
+            "texture": "castle_diffuse.png",
+            "texture_repeat_u": 1.0,
+            "texture_repeat_v": 1.0,
+            "texture_stretch": true,
+            "type": 0,
+            "uv_scale_x": 1.0,
+            "uv_scale_y": 1.0
+        }
+    ]
+}
