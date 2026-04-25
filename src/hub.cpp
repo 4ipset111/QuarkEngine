@@ -1,5 +1,6 @@
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
+#define NOGDI
 
 #ifdef _WIN32
     #include <windows.h>
