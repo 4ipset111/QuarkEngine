@@ -2,13 +2,14 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOGDI
 
+#include "raylib.h"
+
 #ifdef _WIN32
     #include <windows.h>
     #include <shlobj.h>
 #endif
 
 #include "hub.h"
-#include "raylib.h"
 #include "rlImGui.h"
 #include "imgui.h"
 #include "nlohmann/json.hpp"
