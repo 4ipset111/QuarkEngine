@@ -1,3 +1,10 @@
+#ifdef _WIN32
+    #define WIN32_LEAN_AND_MEAN
+    #define NOMINMAX
+    #include <windows.h>
+    #include <shlobj.h>
+#endif
+
 #include "hub.h"
 #include "raylib.h"
 #include "rlImGui.h"
@@ -67,9 +74,6 @@ static void hub_rename_project(const std::string& old_path, const std::string& n
 
 static std::string hub_browse_folder() {
 #ifdef _WIN32
-    #include <windows.h>
-    #include <shlobj.h>
-    
     char path[MAX_PATH] = {};
     BROWSEINFOA bi = {};
     bi.lpszTitle = "Select Project Location";
