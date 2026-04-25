@@ -209,7 +209,7 @@ void Editor::draw_ui(Shader shader) {
 
     float menu_bar_height = ImGui::GetFrameHeight();
 
-    ImGui::SetNextWindowSize(ImVec2(150, 540), ImGuiCond_Once);
+    ImGui::SetNextWindowSize(ImVec2(150, 520), ImGuiCond_Once);
     ImGui::SetNextWindowPos(ImVec2(5, 5 + menu_bar_height), ImGuiCond_Once);
     ImGui::Begin("Hierarchy", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 
@@ -327,7 +327,7 @@ void Editor::draw_ui(Shader shader) {
         ImGui::EndPopup();
     }
 
-    ImGui::SetNextWindowSize(ImVec2(225, 540), ImGuiCond_Once);
+    ImGui::SetNextWindowSize(ImVec2(225, 520), ImGuiCond_Once);
     ImGui::SetNextWindowPos(ImVec2(1050, 5 + menu_bar_height), ImGuiCond_Once);
 
     ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
