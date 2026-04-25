@@ -203,7 +203,17 @@ int main(int argc, char* argv[]) {
             }
 
             int useTexLoc = GetShaderLocation(shader, "useTexture");
-            int use = (e.texture.id != 0) ? 1 : 0;
+            int use = 0;
+            if (e.texture.id != 0) {
+                use = 1;
+            } else {
+                for (int i = 0; i < e.model.materialCount; i++) {
+                    if (e.model.materials[i].maps[MATERIAL_MAP_DIFFUSE].texture.id != 0) {
+                        use = 1;
+                        break;
+                    }
+                }
+            }
             SetShaderValue(shader, useTexLoc, &use, SHADER_UNIFORM_INT);
 
             draw_entity_with_texture(e);

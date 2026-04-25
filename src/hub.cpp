@@ -3,15 +3,14 @@
 #include "raylib.h"
 
 #ifdef _WIN32
-    #define WIN32_LEAN_AND_MEAN
-    #include <windows.h>
-    #include <shlobj.h>
-    #include <ole2.h>
-    #undef WIN32_LEAN_AND_MEAN
-    #undef NOMINMAX
-#endif
+    #define CloseWindow WinCloseWindow
+    #define ShowCursor WinShowCursor
 
-#include "hub.h"
+    #include <windows.h>
+
+    #undef CloseWindow
+    #undef ShowCursor
+#endif
 
 #include "hub.h"
 #include "rlImGui.h"

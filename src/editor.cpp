@@ -293,9 +293,26 @@ void Editor::draw_ui(Shader shader) {
                     if (a.is_procedural) {
                         e.model = a.generator(e.segments);
                         store_uv(&e);
+                        store_material_textures(&e);
                     }
 
-                    else e.model = a.loaded_model;
+                    else {
+                        e.model = a.loaded_model;
+                        store_uv(&e);
+                        store_material_textures(&e);
+
+                        bool has_embedded = false;
+                        for (int i = 0; i < e.model.materialCount; i++) {
+                            if (e.model.materials[i].maps[MATERIAL_MAP_DIFFUSE].texture.id != 0) {
+                                has_embedded = true;
+                                break;
+                            }
+                        }
+                        if (has_embedded) {
+                            e.texture_source = TEXTURE_MODEL;
+                        }
+                    }
+
                     e.texture = {0};
                     scene.entities.push_back(e);
                 }
@@ -440,55 +457,113 @@ void Editor::draw_ui(Shader shader) {
                     e->segments = 16; 
                     update_model(e); 
                     store_uv(e);
+                    store_material_textures(e);
+                    e->texture_source = TEXTURE_NONE;
+                    e->texture_name.clear();
                 } 
                 
                 else {
                     e->model = e->asset->loaded_model;
                     store_uv(e);
+                    store_material_textures(e);
+
+                    bool has_embedded = false;
+                    for (int i = 0; i < e->model.materialCount; i++) {
+                        if (e->model.materials[i].maps[MATERIAL_MAP_DIFFUSE].texture.id != 0) {
+                            has_embedded = true;
+                            break;
+                        }
+                    }
+
+                    if (has_embedded) {
+                        e->texture_source = TEXTURE_MODEL;
+                        e->texture_name.clear();
+                    } else {
+                        e->texture_source = TEXTURE_NONE;
+                        e->texture_name.clear();
+                    }
                 }
             }
         }
 
-        static int current_texture_index = 0;
-        for (int i = 0; i < static_cast<int>(texture_options.size()); i++)
-            if (e->texture.id == texture_options[i].texture.id) current_texture_index = i;
-
+        int current_texture_index = 0;
         std::vector<const char*> texture_names;
-        texture_names.reserve(texture_options.size());
-        for (int i = 0; i < static_cast<int>(texture_options.size()); i++)
+        std::vector<TextureSource> texture_types;
+        std::vector<std::string> texture_sources;
+
+        texture_names.push_back("None");
+        texture_types.push_back(TEXTURE_NONE);
+        texture_sources.push_back("");
+
+        for (int i = 1; i < static_cast<int>(texture_options.size()); i++) {
             texture_names.push_back(texture_options[i].name.c_str());
+            texture_types.push_back(TEXTURE_EXTERNAL);
+            texture_sources.push_back(texture_options[i].name);
+        }
+
+        bool has_model_texture = false;
+        std::string model_texture_label;
+        if (e->asset && !e->asset->is_procedural) {
+            for (int i = 0; i < e->model.materialCount; i++) {
+                if (e->model.materials[i].maps[MATERIAL_MAP_DIFFUSE].texture.id != 0) {
+                    has_model_texture = true;
+                    break;
+                }
+            }
+        }
+
+        if (has_model_texture) {
+            model_texture_label = TextFormat("%s [texture]", e->asset_name.c_str());
+            texture_names.push_back(model_texture_label.c_str());
+            texture_types.push_back(TEXTURE_MODEL);
+            texture_sources.push_back("__model__");
+        }
+
+        for (int i = 0; i < static_cast<int>(texture_types.size()); i++) {
+            if (texture_types[i] == e->texture_source) {
+                if (e->texture_source == TEXTURE_EXTERNAL && e->texture_name == texture_sources[i]) {
+                    current_texture_index = i;
+                    break;
+                }
+                if (e->texture_source != TEXTURE_EXTERNAL) {
+                    current_texture_index = i;
+                    break;
+                }
+            }
+        }
 
         ImGui::Separator();
         ImGui::Text("Material");
 
-        static int last_texture_index = -1;
-        if (ImGui::Combo("Texture", &current_texture_index, texture_names.data(), texture_names.size())) {
-            if (last_texture_index != current_texture_index) {
-                save_state();
-                last_texture_index = current_texture_index;
-                
-                if (current_texture_index == 0) {
-                    static Texture2D white_tex = {0};
+        if (ImGui::Combo("Texture", &current_texture_index, texture_names.data(), static_cast<int>(texture_names.size()))) {
+            save_state();
 
-                    if (white_tex.id == 0) {
-                        Image img = GenImageColor(1, 1, WHITE);
-                        white_tex = LoadTextureFromImage(img);
-                        UnloadImage(img);
+            TextureSource selected_type = texture_types[current_texture_index];
+            if (selected_type == TEXTURE_NONE) {
+                e->texture_source = TEXTURE_NONE;
+                e->texture_name.clear();
+                e->texture = {0};
+                clear_material_textures(e);
+            } else if (selected_type == TEXTURE_EXTERNAL) {
+                e->texture_source = TEXTURE_EXTERNAL;
+                e->texture_name = texture_sources[current_texture_index];
+                e->texture = {0};
+
+                for (int i = 1; i < static_cast<int>(texture_options.size()); i++) {
+                    if (texture_options[i].name == e->texture_name) {
+                        e->texture = texture_options[i].texture;
+                        break;
                     }
-
-                    e->texture = white_tex;
-
-                    for (int i = 0; i < e->model.materialCount; i++) {
-                        e->model.materials[i].maps[MATERIAL_MAP_DIFFUSE].texture = e->texture;
-                        e->model.materials[i].maps[MATERIAL_MAP_DIFFUSE].color = WHITE;
-                    }
-                } 
-                
-                else {
-                    e->texture = texture_options[current_texture_index].texture;
-                    for (int i = 0; i < e->model.materialCount; i++)
-                        e->model.materials[i].maps[MATERIAL_MAP_DIFFUSE].texture = e->texture;
                 }
+
+                for (int i = 0; i < e->model.materialCount; i++) {
+                    e->model.materials[i].maps[MATERIAL_MAP_DIFFUSE].texture = e->texture;
+                }
+            } else if (selected_type == TEXTURE_MODEL) {
+                e->texture_source = TEXTURE_MODEL;
+                e->texture_name = "";
+                e->texture = {0};
+                restore_model_textures(e);
             }
         }
 

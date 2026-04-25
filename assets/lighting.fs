@@ -70,10 +70,13 @@ void main()
         }
     }
 
-    vec3 ambientLight = ambient.rgb * 0.15;                          // always applied
+    vec3 ambientLight = ambient.rgb * 0.15;
     vec3 color = texelColor.rgb * tint.rgb * (ambientLight + lightAccum) + specular;
     color += emissionColor * emissionPower;
 
     finalColor = vec4(color, texelColor.a);
     finalColor = pow(finalColor, vec4(1.0/2.2));
+
+    if (finalColor.a < 0.1)
+        discard;
 }

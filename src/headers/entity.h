@@ -29,6 +29,12 @@ struct ModelAsset {
     Model loaded_model = {0};
 };
 
+enum TextureSource {
+    TEXTURE_NONE,
+    TEXTURE_EXTERNAL,
+    TEXTURE_MODEL
+};
+
 struct Entity {
     int id;
     std::string name;
@@ -38,6 +44,9 @@ struct Entity {
     Vector3 scale;
 
     Texture2D texture = {0};
+    TextureSource texture_source = TEXTURE_NONE;
+    std::string texture_name;
+    std::vector<Texture2D> original_material_textures;
 
     bool auto_uv;
     bool texture_stretch = true; 

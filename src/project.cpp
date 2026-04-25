@@ -61,12 +61,16 @@ void project_save(const std::string& folder_path, const Scene& scene) {
         ej["outline_color"] = color_to_hex(e.outline_color);
 
         std::string tex_name = "None";
-        for (const auto& opt : texture_options) {
-            if (opt.texture.id == e.texture.id && opt.texture.id != 0)
-                tex_name = opt.name;
+        if (e.texture_source == TEXTURE_EXTERNAL) {
+            tex_name = e.texture_name.empty() ? "None" : e.texture_name;
+        } else if (e.texture_source == TEXTURE_MODEL) {
+            tex_name = "__model__";
         }
 
         ej["texture"]          = tex_name;
+        ej["texture_source"]   = (e.texture_source == TEXTURE_EXTERNAL) ? "external" :
+                                   (e.texture_source == TEXTURE_MODEL ? "model" : "none");
+        ej["texture_name"]     = e.texture_name;
         ej["texture_stretch"]  = e.texture_stretch;
         ej["auto_uv"]          = e.auto_uv;
         ej["texture_repeat_u"] = e.texture_repeat_u;
@@ -160,17 +164,65 @@ bool project_load(const std::string& folder_path, Scene& scene, Shader shader) {
                 }
 
                 store_uv(&e);
+                store_material_textures(&e);
                 break;
             }
         }
 
-        std::string tex_name = ej["texture"].get<std::string>();
-        e.texture = {0};
+        std::string tex_name = "None";
+        if (ej.contains("texture")) {
+            tex_name = ej["texture"].get<std::string>();
+        }
 
-        for (auto& opt : texture_options) {
-            if (opt.name == tex_name) {
-                e.texture = opt.texture;
-                break;
+        std::string texture_source = "none";
+        if (ej.contains("texture_source")) {
+            texture_source = ej["texture_source"].get<std::string>();
+        }
+
+        e.texture = {0};
+        e.texture_name.clear();
+
+        if (texture_source == "external") {
+            e.texture_source = TEXTURE_EXTERNAL;
+            if (ej.contains("texture_name")) {
+                e.texture_name = ej["texture_name"].get<std::string>();
+            } else {
+                e.texture_name = tex_name;
+            }
+
+            for (auto& opt : texture_options) {
+                if (opt.name == e.texture_name) {
+                    e.texture = opt.texture;
+                    break;
+                }
+            }
+        } else if (texture_source == "model" || tex_name == "__model__") {
+            e.texture_source = TEXTURE_MODEL;
+            restore_model_textures(&e);
+        } else {
+            bool has_embedded = false;
+            for (int i = 0; i < e.model.materialCount; i++) {
+                if (e.model.materials[i].maps[MATERIAL_MAP_DIFFUSE].texture.id != 0) {
+                    has_embedded = true;
+                    break;
+                }
+            }
+
+            if (tex_name != "None" && tex_name != "__model__") {
+                e.texture_source = TEXTURE_EXTERNAL;
+                e.texture_name = tex_name;
+                for (auto& opt : texture_options) {
+                    if (opt.name == e.texture_name) {
+                        e.texture = opt.texture;
+                        break;
+                    }
+                }
+            } else if (has_embedded) {
+                e.texture_source = TEXTURE_MODEL;
+                restore_model_textures(&e);
+            } else {
+                e.texture_source = TEXTURE_NONE;
+                clear_material_textures(&e);
             }
         }
 
@@ -179,11 +231,8 @@ bool project_load(const std::string& folder_path, Scene& scene, Shader shader) {
 
             if (e.texture.id != 0) {
                 e.model.materials[i].maps[MATERIAL_MAP_DIFFUSE].texture = e.texture;
-            } 
-            
-            else {
-                e.model.materials[i].maps[MATERIAL_MAP_DIFFUSE].texture = {0};
             }
+            // If no external texture is selected, keep the model's embedded diffuse texture.
 
             e.model.materials[i].shader = shader;
         }

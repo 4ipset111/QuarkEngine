@@ -121,6 +121,31 @@ void store_uv(Entity* e) {
     }
 }
 
+void store_material_textures(Entity* e) {
+    e->original_material_textures.clear();
+    e->original_material_textures.reserve(e->model.materialCount);
+
+    for (int i = 0; i < e->model.materialCount; i++) {
+        e->original_material_textures.push_back(
+            e->model.materials[i].maps[MATERIAL_MAP_DIFFUSE].texture
+        );
+    }
+}
+
+void restore_model_textures(Entity* e) {
+    if (e->original_material_textures.size() != static_cast<size_t>(e->model.materialCount)) return;
+
+    for (int i = 0; i < e->model.materialCount; i++) {
+        e->model.materials[i].maps[MATERIAL_MAP_DIFFUSE].texture = e->original_material_textures[i];
+    }
+}
+
+void clear_material_textures(Entity* e) {
+    for (int i = 0; i < e->model.materialCount; i++) {
+        e->model.materials[i].maps[MATERIAL_MAP_DIFFUSE].texture = {0};
+    }
+}
+
 void draw_entity_with_texture(Entity& e) {
     if (e.texture.id != 0) {
         for (int i = 0; i < e.model.materialCount; i++)
