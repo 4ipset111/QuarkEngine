@@ -33,13 +33,26 @@ void Scene::release_resources() {
 
     for (auto& entity : entities) {
         const bool owns_model = entity_owns_model(entity);
+        if (entity.owns_materials) {
+            if (entity.model.materials) {
+                RL_FREE(entity.model.materials);
+                entity.model.materials = nullptr;
+            }
+
+            if (entity.model.meshMaterial) {
+                RL_FREE(entity.model.meshMaterial);
+                entity.model.meshMaterial = nullptr;
+            }
+
+            entity.owns_materials = false;
+        }
+
         if (owns_model && entity.model.meshCount > 0 && entity.model.meshes) {
             void* mesh_ptr = static_cast<void*>(entity.model.meshes);
             if (released_meshes.insert(mesh_ptr).second) {
                 UnloadModel(entity.model);
             }
         }
-
         entity.model = {0};
         entity.texture = {0};
     }

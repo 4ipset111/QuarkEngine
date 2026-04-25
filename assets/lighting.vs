@@ -10,11 +10,13 @@ in vec4 vertexColor;
 uniform mat4 mvp;
 uniform mat4 matModel;
 uniform mat4 matNormal;
+uniform mat4 lightSpaceMatrix;
 
 // Output vertex attributes (to fragment shader)
 out vec3 fragPosition;
 out vec2 fragTexCoord;
 out vec4 fragColor;
+out vec4 fragPosLightSpace;
 out vec3 fragNormal;
 
 // NOTE: Add your custom variables here
@@ -29,4 +31,5 @@ void main()
 
     // Calculate final vertex position
     gl_Position = mvp*vec4(vertexPosition, 1.0);
+    fragPosLightSpace = lightSpaceMatrix * vec4(fragPosition, 1.0);
 }

@@ -314,3 +314,23 @@ void refresh_assets(std::string project_path) {
         asset_entries.push_back(a);
     }
 }
+void clone_model_materials(Entity* e) {
+    if (e->model.materialCount <= 0) return;
+
+    if (e->owns_materials) {
+        if (e->model.materials)    RL_FREE(e->model.materials);
+        if (e->model.meshMaterial) RL_FREE(e->model.meshMaterial);
+        e->model.materials    = nullptr;
+        e->model.meshMaterial = nullptr;
+        e->owns_materials     = false;
+    }
+
+    Material* cloned = (Material*)RL_MALLOC(e->model.materialCount * sizeof(Material));
+    memcpy(cloned, e->asset->loaded_model.materials, e->model.materialCount * sizeof(Material));
+    e->model.materials = cloned;
+
+    e->model.meshMaterial = (int*)RL_MALLOC(e->model.meshCount * sizeof(int));
+    memcpy(e->model.meshMaterial, e->asset->loaded_model.meshMaterial, e->model.meshCount * sizeof(int));
+
+    e->owns_materials = true;
+}

@@ -72,6 +72,7 @@ struct Entity {
     bool has_light = false;
     bool light_created = false;
     bool shader_assigned = false;
+    bool owns_materials = false;
     Lighting light;
 
     Entity()
