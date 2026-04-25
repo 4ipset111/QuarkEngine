@@ -1,14 +1,17 @@
 #define NOMINMAX
-#define WIN32_LEAN_AND_MEAN
-#define NOGDI
-#define NOUSER
 
 #include "raylib.h"
 
 #ifdef _WIN32
+    #define WIN32_LEAN_AND_MEAN
     #include <windows.h>
     #include <shlobj.h>
+    #include <ole2.h>
+    #undef WIN32_LEAN_AND_MEAN
+    #undef NOMINMAX
 #endif
+
+#include "hub.h"
 
 #include "hub.h"
 #include "rlImGui.h"
