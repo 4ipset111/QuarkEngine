@@ -1,6 +1,7 @@
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 #define NOGDI
+#define NOUSER
 
 #include "raylib.h"
 
