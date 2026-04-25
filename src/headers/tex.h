@@ -33,4 +33,5 @@ void draw_entity_with_texture(Entity& e);
 void refresh_textures(Scene* scene, const std::string& project_path);
 void load_assets(std::string project_path);
 void refresh_assets(std::string project_path);
+void clone_model_materials(Entity* e);
 bool is_image_file(const std::filesystem::path& p);

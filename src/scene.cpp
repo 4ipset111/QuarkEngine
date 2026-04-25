@@ -31,14 +31,19 @@ void Scene::release_resources() {
     std::unordered_set<void*> released_meshes;
 
     for (auto& entity : entities) {
-        const bool owns_model = (!entity.asset || entity.asset->is_procedural);
-        if (owns_model && entity.model.meshCount > 0 && entity.model.meshes) {
-            void* mesh_ptr = static_cast<void*>(entity.model.meshes);
-            if (released_meshes.insert(mesh_ptr).second) {
-                UnloadModel(entity.model);
+        if (entity.model.materialCount > 0 && entity.model.materials) {
+            if (entity.owns_materials && entity.model.materialCount > 0 && entity.model.materials) {
+                RL_FREE(entity.model.materials);
+                entity.model.materials = nullptr;
+            }
+            
+            if (entity.owns_materials && entity.model.meshMaterial) {
+                RL_FREE(entity.model.meshMaterial);
+                entity.model.meshMaterial = nullptr;
             }
         }
-
+        if (entity.asset && entity.asset->is_procedural && entity.model.meshCount > 0)
+            UnloadModel(entity.model);
         entity.model = {0};
         entity.texture = {0};
     }

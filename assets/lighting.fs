@@ -8,8 +8,11 @@ in vec3 fragNormal;
 uniform sampler2D texture0;
 uniform vec4 colDiffuse;
 uniform int useTexture;
+uniform sampler2D shadowMap;
 
 out vec4 finalColor;
+
+in vec4 fragPosLightSpace;
 
 #define MAX_LIGHTS 4
 #define LIGHT_DIRECTIONAL 0
@@ -32,6 +35,19 @@ uniform vec3 viewPos;
 
 uniform vec3 emissionColor;
 uniform float emissionPower;
+
+float ShadowCalc(vec4 fragPosLS) {
+    vec3 proj = fragPosLS.xyz / fragPosLS.w;
+    proj = proj * 0.5 + 0.5;
+
+    if (proj.z > 1.0) return 0.0;
+
+    float closestDepth = texture(shadowMap, proj.xy).r;
+    float currentDepth = proj.z;
+    float bias = 0.005;
+
+    return currentDepth - bias > closestDepth ? 1.0 : 0.0;
+}
 
 void main()
 {

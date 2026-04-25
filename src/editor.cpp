@@ -24,45 +24,89 @@ static void assign_entity_name(Entity& entity, const char* new_name) {
 
 void Editor::save_state() {
     SceneState state;
-    state.entities = scene.entities;
     state.selected = scene.selected;
 
-    undo_stack.push(state);
+    for (auto e : scene.entities) {
+        e.model.materials = nullptr;
+        e.model.meshMaterial = nullptr;
+        e.owns_materials = false;
+        state.entities.push_back(e);
+    }
 
-    while (!redo_stack.empty())
-        redo_stack.pop();
+    undo_stack.push(state);
+    while (!redo_stack.empty()) redo_stack.pop();
 }
 
 void Editor::undo() {
     if (undo_stack.empty()) return;
 
     SceneState current;
-    current.entities = scene.entities;
     current.selected = scene.selected;
+    for (auto e : scene.entities) {
+        e.model.materials = nullptr;
+        e.model.meshMaterial = nullptr;
+        e.owns_materials = false;
+        current.entities.push_back(e);
+    }
 
     redo_stack.push(current);
 
     SceneState prev = undo_stack.top();
     undo_stack.pop();
-
     scene.entities = prev.entities;
     scene.selected = prev.selected;
+
+    for (auto& e : scene.entities) {
+        if (!e.asset) continue;
+
+        if (e.asset->is_procedural) {
+            e.model = e.asset->generator(e.segments);
+            store_uv(&e);
+        } 
+        
+        else {
+            e.model = e.asset->loaded_model;
+            clone_model_materials(&e);
+            store_uv(&e);
+        }
+
+        e.shader_assigned = false;
+    }
 }
 
 void Editor::redo() {
     if (redo_stack.empty()) return;
 
     SceneState current;
-    current.entities = scene.entities;
     current.selected = scene.selected;
-
+    for (auto e : scene.entities) {
+        e.model.materials = nullptr;
+        e.model.meshMaterial = nullptr;
+        e.owns_materials = false;
+        current.entities.push_back(e);
+    }
+    
     undo_stack.push(current);
 
     SceneState next = redo_stack.top();
     redo_stack.pop();
-
     scene.entities = next.entities;
     scene.selected = next.selected;
+
+    for (auto& e : scene.entities) {
+        if (!e.asset) continue;
+        if (e.asset->is_procedural) {
+            e.model = e.asset->generator(e.segments);
+            store_uv(&e);
+        } 
+        
+        else {
+            e.model = e.asset->loaded_model;
+            clone_model_materials(&e);
+            store_uv(&e);
+        }
+        e.shader_assigned = false;
+    }
 }
 
 void Editor::handle_input() {
@@ -281,6 +325,7 @@ void Editor::draw_ui(Shader shader) {
             save_state();
 
             for (auto& a : assets) {
+                if (!a.is_procedural) continue;
                 if (ImGui::MenuItem(a.name.c_str())) {
                     Entity e;
                     e.id = static_cast<int>(scene.entities.size());
@@ -298,6 +343,7 @@ void Editor::draw_ui(Shader shader) {
 
                     else {
                         e.model = a.loaded_model;
+                        clone_model_materials(&e);
                         store_uv(&e);
                         store_material_textures(&e);
 
@@ -437,51 +483,60 @@ void Editor::draw_ui(Shader shader) {
         }
 
         static int last_model_index = -1;
-        if (!model_names.empty() && ImGui::Combo("Model", &current_model_index, model_names.data(), static_cast<int>(model_names.size()))) {
-            if (last_model_index != current_model_index) {
-                save_state();
-                last_model_index = current_model_index;
-                
-                e->asset = &assets[current_model_index];
-                e->asset_name = e->asset->name;
-                e->type  = e->asset->type;
+        static int last_selected = -1;
 
-                if (e->model.meshCount > 0) {
+        if (scene.selected != last_selected) {
+            last_selected = scene.selected;
+            last_model_index = -1;
+        }
+
+        if (!model_names.empty() && ImGui::Combo("Model", &current_model_index, model_names.data(), static_cast<int>(model_names.size()))) {
+            save_state();
+            
+            e->asset = &assets[current_model_index];
+            e->asset_name = e->asset->name;
+            e->type = e->asset->type;
+
+            if (e->model.meshCount > 0) {
+                if (e->asset->is_procedural)
                     UnloadModel(e->model);
-                    e->model = {0};
+                e->model = {0};
+            }
+
+            e->shader_assigned = false;
+
+            if (e->asset->is_procedural) {
+                e->segments = 16;
+                update_model(e);
+                store_uv(e);
+                store_material_textures(e);
+                e->texture_source = TEXTURE_NONE;
+                e->texture_name.clear();
+            }
+            else {
+                e->model = e->asset->loaded_model;
+                clone_model_materials(e);
+                store_uv(e);
+
+                e->original_material_textures.clear();
+                bool has_embedded = false;
+                for (int i = 0; i < e->asset->loaded_model.materialCount; i++) {
+                    Texture2D t = e->asset->loaded_model.materials[i].maps[MATERIAL_MAP_DIFFUSE].texture;
+                    e->original_material_textures.push_back(t);
+                    if (t.id != 0 && t.id != 1)
+                        has_embedded = true;
                 }
 
-                e->shader_assigned = false;
-
-                if (e->asset->is_procedural) { 
-                    e->segments = 16; 
-                    update_model(e); 
-                    store_uv(e);
-                    store_material_textures(e);
+                if (has_embedded) {
+                    e->texture_source = TEXTURE_MODEL;
+                    e->texture_name.clear();
+                }
+                else {
                     e->texture_source = TEXTURE_NONE;
                     e->texture_name.clear();
-                } 
-                
-                else {
-                    e->model = e->asset->loaded_model;
-                    store_uv(e);
-                    store_material_textures(e);
-
-                    bool has_embedded = false;
-                    for (int i = 0; i < e->model.materialCount; i++) {
-                        if (e->model.materials[i].maps[MATERIAL_MAP_DIFFUSE].texture.id != 0) {
-                            has_embedded = true;
-                            break;
-                        }
-                    }
-
-                    if (has_embedded) {
-                        e->texture_source = TEXTURE_MODEL;
-                        e->texture_name.clear();
-                    } else {
-                        e->texture_source = TEXTURE_NONE;
-                        e->texture_name.clear();
-                    }
+                    e->texture = {0};
+                    for (int i = 0; i < e->model.materialCount; i++)
+                        e->model.materials[i].maps[MATERIAL_MAP_DIFFUSE].texture = {0};
                 }
             }
         }
@@ -502,10 +557,10 @@ void Editor::draw_ui(Shader shader) {
         }
 
         bool has_model_texture = false;
-        std::string model_texture_label;
+        static std::string model_texture_label;
         if (e->asset && !e->asset->is_procedural) {
-            for (int i = 0; i < e->model.materialCount; i++) {
-                if (e->model.materials[i].maps[MATERIAL_MAP_DIFFUSE].texture.id != 0) {
+            for (const auto& t : e->original_material_textures) {
+                if (t.id != 0 && t.id != 1) {
                     has_model_texture = true;
                     break;
                 }
@@ -535,6 +590,9 @@ void Editor::draw_ui(Shader shader) {
         ImGui::Separator();
         ImGui::Text("Material");
 
+        if (current_texture_index >= static_cast<int>(texture_names.size()))
+            current_texture_index = 0;
+
         if (ImGui::Combo("Texture", &current_texture_index, texture_names.data(), static_cast<int>(texture_names.size()))) {
             save_state();
 
@@ -544,7 +602,9 @@ void Editor::draw_ui(Shader shader) {
                 e->texture_name.clear();
                 e->texture = {0};
                 clear_material_textures(e);
-            } else if (selected_type == TEXTURE_EXTERNAL) {
+            } 
+            
+            else if (selected_type == TEXTURE_EXTERNAL) {
                 e->texture_source = TEXTURE_EXTERNAL;
                 e->texture_name = texture_sources[current_texture_index];
                 e->texture = {0};
@@ -559,7 +619,9 @@ void Editor::draw_ui(Shader shader) {
                 for (int i = 0; i < e->model.materialCount; i++) {
                     e->model.materials[i].maps[MATERIAL_MAP_DIFFUSE].texture = e->texture;
                 }
-            } else if (selected_type == TEXTURE_MODEL) {
+            } 
+            
+            else if (selected_type == TEXTURE_MODEL) {
                 e->texture_source = TEXTURE_MODEL;
                 e->texture_name = "";
                 e->texture = {0};
